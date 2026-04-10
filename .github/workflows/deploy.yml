@@ -32,17 +32,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
           REPO="${{ secrets.ECR_REPOSITORY }}"
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           IMAGE_URI="${ACCOUNT_ID}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${REPO}:${IMAGE_TAG}"
-          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
+
+          echo "Computed IMAGE_URI = $IMAGE_URI"
+
           docker build -t "$IMAGE_URI" .
           docker push "$IMAGE_URI"
+
+          # Write output AFTER docker build and push
+          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
         env:
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
-
-      - name: Debug output
-        run: echo "Output IMAGE_URI = ${{ needs.build-and-push.outputs.image_uri }}"
 
   deploy-to-ec2:
     needs: build-and-push
@@ -57,7 +60,6 @@ jobs:
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
-
       - name: Deploy to EC2
         env:
           IMAGE_URI: ${{ needs.build-and-push.outputs.image_uri }}
