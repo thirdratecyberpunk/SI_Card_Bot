@@ -10,8 +10,6 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    outputs:
-      image_uri: ${{ steps.push.outputs.image_uri }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,30 +30,35 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           REPO="${{ secrets.ECR_REPOSITORY }}"
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           IMAGE_URI="${ACCOUNT_ID}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${REPO}:${IMAGE_TAG}"
-
           echo "Computed IMAGE_URI = $IMAGE_URI"
-
           docker build -t "$IMAGE_URI" .
           docker push "$IMAGE_URI"
-
-          # Write output AFTER docker build and push
-          # multi line to get over silent secret hiding
-          echo "image_uri<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$IMAGE_URI" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
-        env:
-          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          echo "$IMAGE_URI" > image_uri.txt
+      - name: Upload image URI
+        uses: actions/upload-artifact@v3
+        with:
+          name: image_uri
+          path: image_uri.txt
 
   deploy-to-ec2:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout (for SSH helper files, optional)
+      - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Download image URI
+        uses: actions/download-artifact@v3
+        with:
+          name: image_uri
+
+      - name: Set image URI
+        run: |
+          IMAGE_URI=$(cat image_uri.txt)
+          echo "IMAGE_URI=$IMAGE_URI" >> "$GITHUB_ENV"
 
       - name: Setup SSH key
         run: |
@@ -63,16 +66,16 @@ jobs:
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
       - name: Deploy to EC2
         env:
-          IMAGE_URI: ${{ needs.build-and-push.outputs.image_uri }}
           EC2_USER: ${{ secrets.EC2_SSH_USER || 'ubuntu' }}
         run: |
-          echo "Deploying IMAGE_URI=${IMAGE_URI}"
+          echo "Deploying IMAGE_URI=${{ env.IMAGE_URI }}"
 
           ssh -i ~/.ssh/id_rsa \
             $EC2_USER@${{ secrets.EC2_HOST }} \
-            IMAGE_URI="${IMAGE_URI}" \
+            IMAGE_URI="${{ env.IMAGE_URI }}" \
             'bash -s' << 'EOF'
           set -e
 
