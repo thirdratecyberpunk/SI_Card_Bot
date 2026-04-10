@@ -77,34 +77,40 @@ jobs:
             $EC2_USER@${{ secrets.EC2_HOST }} \
             AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
             AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
-            AWS_REGION=${{ secrets.AWS_REGION }} \
             IMAGE_URI="${{ env.IMAGE_URI }}" \
             'bash -s' << EOF
           set -euo pipefail
 
           echo "EC2 received IMAGE_URI=$IMAGE_URI"
 
-          # Ensure consistent environment (fixes HOME issues)
+          # Ensure consistent environment
           export HOME=/home/ubuntu
 
-          # Derive registry directly from IMAGE_URI (no AWS call needed)
+          # Hardcode region at render time (fixes your current error)
+          REGION='${{ secrets.AWS_REGION }}'
+
+          # Derive registry from image URI
           REGISTRY="\${IMAGE_URI%%/*}"
           echo "Using registry: \$REGISTRY"
+          echo "Using region: \$REGION"
 
           # Ensure docker is running
           sudo systemctl enable --now docker || true
 
-          # Move into the compose directory
+          # Move into app directory
           cd ~/SI_Card_Bot
 
-          # Login to ECR
-          aws ecr get-login-password --region "$AWS_REGION" \
+          # Write env file for docker compose
+          echo "IMAGE_URI=\$IMAGE_URI" > .env
+
+          # Login to ECR (now guaranteed to work)
+          aws ecr get-login-password --region "\$REGION" \
             | sudo docker login --username AWS --password-stdin "\$REGISTRY"
 
-          # Pull latest image
+          # Pull only updated service
           sudo docker compose pull si-card-bot
 
-          # Start/update services
+          # Start/update containers
           sudo docker compose up -d
 
           EOF
