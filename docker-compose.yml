@@ -1,10 +1,28 @@
 version: "3.8"
+
 services:
   si-card-bot:
     build: .
     image: si-card-bot:latest
     env_file:
       - .env
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000" # internal only, not public
     restart: unless-stopped
+    networks:
+      - monitor-net
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    ports:
+      - "3001:3001" # public UI
+    volumes:
+      - ./uptime-kuma:/app/data
+    restart: unless-stopped
+    networks:
+      - monitor-net
+
+networks:
+  monitor-net:
+    driver: bridge
