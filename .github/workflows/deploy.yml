@@ -22,21 +22,25 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to ECR
-        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build and push image to ECR
-        id: push
         shell: bash
         run: |
           set -euo pipefail
+
           REPO="${{ secrets.ECR_REPOSITORY }}"
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
           IMAGE_URI="${ACCOUNT_ID}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${REPO}:${IMAGE_TAG}"
-          echo "Computed IMAGE_URI = $IMAGE_URI"
+
+          echo "Computed IMAGE_URI=$IMAGE_URI"
+
           docker build -t "$IMAGE_URI" .
           docker push "$IMAGE_URI"
+
           echo "$IMAGE_URI" > image_uri.txt
+
       - name: Upload image URI
         uses: actions/upload-artifact@v4
         with:
@@ -46,6 +50,7 @@ jobs:
   deploy-to-ec2:
     needs: build-and-push
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -62,34 +67,57 @@ jobs:
 
       - name: Setup SSH key
         run: |
+          set -euo pipefail
+
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
       - name: Deploy to EC2
         env:
           EC2_USER: ${{ secrets.EC2_SSH_USER || 'ubuntu' }}
         run: |
-          echo "Deploying IMAGE_URI=${{ env.IMAGE_URI }}"
+          set -euo pipefail
+
+          IMAGE_URI="${{ env.IMAGE_URI }}"
+
+          echo "Deploying IMAGE_URI=$IMAGE_URI"
+
+          if [ -z "$IMAGE_URI" ]; then
+            echo "ERROR: IMAGE_URI is empty"
+            exit 1
+          fi
 
           ssh -i ~/.ssh/id_rsa \
             $EC2_USER@${{ secrets.EC2_HOST }} \
             AWS_ACCESS_KEY_ID='${{ secrets.AWS_ACCESS_KEY_ID }}' \
             AWS_SECRET_ACCESS_KEY='${{ secrets.AWS_SECRET_ACCESS_KEY }}' \
             AWS_REGION='${{ secrets.AWS_REGION }}' \
-            IMAGE_URI="${{ env.IMAGE_URI }}" \
-            'bash -s' << EOF
+            IMAGE_URI="$IMAGE_URI" \
+            'bash -s' << 'EOF'
+
           set -euo pipefail
 
           echo "EC2 received IMAGE_URI=$IMAGE_URI"
 
-          REGION="$AWS_REGION"
-          REGISTRY="${IMAGE_URI%%/*}"
+          if [ -z "$IMAGE_URI" ]; then
+            echo "ERROR: IMAGE_URI is empty on EC2"
+            exit 1
+          fi
+
+          REGISTRY=$(echo "$IMAGE_URI" | cut -d'/' -f1)
+          REGION=$(echo "$REGISTRY" | cut -d'.' -f4)
 
           echo "Using registry: $REGISTRY"
           echo "Using region: $REGION"
+
+          if [ -z "$REGISTRY" ] || [ -z "$REGION" ]; then
+            echo "ERROR: Failed to derive REGISTRY or REGION"
+            exit 1
+          fi
 
           sudo systemctl enable --now docker || true
           cd ~/SI_Card_Bot
