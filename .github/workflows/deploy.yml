@@ -76,24 +76,12 @@ jobs:
 
           ssh -i ~/.ssh/id_rsa \
             $EC2_USER@${{ secrets.EC2_HOST }} \
-            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
-            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
-            IMAGE_URI="${{ env.IMAGE_URI }}" \
-            'bash -s' << EOF
-          set -euo pipefail
-
-          ssh -i ~/.ssh/id_rsa \
-            $EC2_USER@${{ secrets.EC2_HOST }} \
             AWS_ACCESS_KEY_ID='${{ secrets.AWS_ACCESS_KEY_ID }}' \
             AWS_SECRET_ACCESS_KEY='${{ secrets.AWS_SECRET_ACCESS_KEY }}' \
             AWS_REGION='${{ secrets.AWS_REGION }}' \
             IMAGE_URI="${{ env.IMAGE_URI }}" \
-            'bash -s' << EOF
+            'bash -s' << 'EOF'
           set -euo pipefail
-
-          export AWS_ACCESS_KEY_ID
-          export AWS_SECRET_ACCESS_KEY
-          export AWS_REGION
 
           echo "EC2 received IMAGE_URI=$IMAGE_URI"
 
