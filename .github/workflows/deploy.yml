@@ -75,14 +75,21 @@ jobs:
 
           ssh -i ~/.ssh/id_rsa \
             $EC2_USER@${{ secrets.EC2_HOST }} \
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            AWS_REGION=${{ secrets.AWS_REGION }} \
             IMAGE_URI="${{ env.IMAGE_URI }}" \
             'bash -s' << EOF
-          set -e
+          set -euo pipefail
 
           echo "EC2 received IMAGE_URI=$IMAGE_URI"
 
-          # Make IMAGE_URI visible to docker compose
-          export IMAGE_URI="$IMAGE_URI"
+          # Ensure consistent environment (fixes HOME issues)
+          export HOME=/home/ubuntu
+
+          # Derive registry directly from IMAGE_URI (no AWS call needed)
+          REGISTRY="\${IMAGE_URI%%/*}"
+          echo "Using registry: \$REGISTRY"
 
           # Ensure docker is running
           sudo systemctl enable --now docker || true
@@ -90,23 +97,14 @@ jobs:
           # Move into the compose directory
           cd ~/SI_Card_Bot
 
-          # Login to ECR using instance role
-          if command -v aws >/dev/null 2>&1; then
-            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-            aws ecr get-login-password --region '${{ secrets.AWS_REGION }}' \
-              | sudo docker login --username AWS --password-stdin \
-                "${ACCOUNT_ID}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com"
-          fi
+          # Login to ECR
+          aws ecr get-login-password --region "$AWS_REGION" \
+            | sudo docker login --username AWS --password-stdin "\$REGISTRY"
 
-          # Pull only the updated bot image
+          # Pull latest image
           sudo docker compose pull si-card-bot
 
-          # Start the full stack (Kuma + bot) if not running
+          # Start/update services
           sudo docker compose up -d
 
-          # Restart only the bot service
-          sudo docker compose up -d si-card-bot
-
-          # Show logs
-          sudo docker compose logs --tail=50 si-card-bot
           EOF
