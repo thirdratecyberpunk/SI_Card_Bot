@@ -2,8 +2,7 @@ version: "3.8"
 
 services:
   si-card-bot:
-    build: .
-    image: si-card-bot:latest
+    image: ${IMAGE_URI}
     env_file:
       - .env
     expose:
