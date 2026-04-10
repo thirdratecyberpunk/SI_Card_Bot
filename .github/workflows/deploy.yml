@@ -78,7 +78,7 @@ jobs:
 
       - name: Deploy to EC2
         env:
-          EC2_USER: ${{ secrets.EC2_SSH_USER || 'ubuntu' }}
+          EC2_USER: ${{ secrets.EC2_SSH_USER }}
         run: |
           set -euo pipefail
 
@@ -93,8 +93,6 @@ jobs:
 
           ssh -i ~/.ssh/id_rsa \
             $EC2_USER@${{ secrets.EC2_HOST }} \
-            AWS_ACCESS_KEY_ID='${{ secrets.AWS_ACCESS_KEY_ID }}' \
-            AWS_SECRET_ACCESS_KEY='${{ secrets.AWS_SECRET_ACCESS_KEY }}' \
             AWS_REGION='${{ secrets.AWS_REGION }}' \
             IMAGE_URI="$IMAGE_URI" \
             'bash -s' << 'EOF'
@@ -109,7 +107,7 @@ jobs:
           fi
 
           REGISTRY=$(echo "$IMAGE_URI" | cut -d'/' -f1)
-          REGION=$(echo "$REGISTRY" | cut -d'.' -f4)
+          REGION="${AWS_REGION}"
 
           echo "Using registry: $REGISTRY"
           echo "Using region: $REGION"
@@ -121,8 +119,6 @@ jobs:
 
           sudo systemctl enable --now docker || true
           cd ~/SI_Card_Bot
-
-          echo "IMAGE_URI=$IMAGE_URI" > .env
 
           aws ecr get-login-password --region "$REGION" \
             | sudo docker login --username AWS --password-stdin "$REGISTRY"
