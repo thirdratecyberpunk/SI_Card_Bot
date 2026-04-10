@@ -47,7 +47,7 @@ app.listen(HEALTH_PORT, () => {
 });
 // --- end health server ---
 
-bot.commands = new Collection();
+commands = new Collection();
 
 const commandFiles = fs
   .readdirSync("./commands/")
@@ -55,7 +55,7 @@ const commandFiles = fs
 
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
-  bot.commands.set(command.name, command);
+  commands.set(command.name, command);
 }
 
 bot.once("ready", async () => {
@@ -68,7 +68,7 @@ bot.once("ready", async () => {
     status: "online",
   });
 
-  console.log(bot.commands.get("spirit").name);
+  console.log(commands.get("spirit").name);
 });
 
 bot.on("messageCreate", async (msg) => {
@@ -77,10 +77,10 @@ bot.on("messageCreate", async (msg) => {
   let command = args.shift().toLowerCase();
   console.log(command);
 
-  if (!bot.commands.has(command)) return console.log("command not in list");
+  if (!commands.has(command)) return console.log("command not in list");
 
   try {
-    await bot.commands.get(command).execute(msg, args, Discord);
+    await commands.get(command).execute(msg, args, Discord);
   } catch (error) {
     console.error(error);
   }
