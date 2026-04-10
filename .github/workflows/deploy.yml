@@ -92,19 +92,15 @@ jobs:
                 "${ACCOUNT_ID}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com"
           fi
 
-          # Pull the new image
-          sudo docker pull "$IMAGE_URI"
+          # Pull only the updated bot image
+          sudo docker compose pull si-card-bot
 
-          # Stop & remove old container (if exists)
-          if sudo docker ps -a --format '{{.Names}}' | grep -q '^si-card-bot$'; then
-            sudo docker stop si-card-bot || true
-            sudo docker rm si-card-bot || true
-          fi
+          # Start the full stack (Kuma + bot) if not running
+          sudo docker compose up -d
 
-          # Run container with env file
-          sudo docker run -d --name si-card-bot --restart unless-stopped \
-            --env-file ~/SI_Card_Bot/.env \
-            "$IMAGE_URI"
+          # Restart only the bot service
+          sudo docker compose up -d si-card-bot
 
-          sudo docker logs --tail 50 si-card-bot || true
+          # Show logs
+          sudo docker compose logs --tail=50 si-card-bot
           EOF
