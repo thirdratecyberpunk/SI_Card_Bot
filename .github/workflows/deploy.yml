@@ -72,7 +72,8 @@ jobs:
 
             cd ~/SI_Card_Bot
 
-            echo "IMAGE_URI=$IMAGE_URI" > .env
+            aws ecr get-login-password --region eu-west-2 \
+            | sudo docker login --username AWS --password-stdin 623027687009.dkr.ecr.eu-west-2.amazonaws.com
 
             docker compose pull si-card-bot
             docker compose up -d --remove-orphans
