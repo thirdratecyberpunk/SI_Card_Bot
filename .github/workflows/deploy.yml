@@ -10,9 +10,9 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -24,17 +24,12 @@ jobs:
       - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build and push image to ECR
-        shell: bash
+      - name: Build & push image
         run: |
-          set -euo pipefail
-
           REPO="${{ secrets.ECR_REPOSITORY }}"
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
-          IMAGE_URI="${ACCOUNT_ID}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${REPO}:${IMAGE_TAG}"
-
-          echo "Computed IMAGE_URI=$IMAGE_URI"
+          IMAGE_URI="$ACCOUNT_ID.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/$REPO:${IMAGE_TAG}"
 
           docker build -t "$IMAGE_URI" .
           docker push "$IMAGE_URI"
@@ -47,83 +42,38 @@ jobs:
           name: image_uri
           path: image_uri.txt
 
-  deploy-to-ec2:
+  deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download image URI
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: image_uri
 
-      - name: Set image URI
+      - name: Read image URI
         run: |
           IMAGE_URI=$(cat image_uri.txt)
-          echo "IMAGE_URI=$IMAGE_URI" >> "$GITHUB_ENV"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
-      - name: Setup SSH key
+      - name: Setup SSH
         run: |
-          set -euo pipefail
-
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-
           ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
 
       - name: Deploy to EC2
-        env:
-          EC2_USER: ${{ secrets.EC2_SSH_USER }}
         run: |
-          set -euo pipefail
+          ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.EC2_HOST }} << EOF
+            set -euo pipefail
 
-          IMAGE_URI="${{ env.IMAGE_URI }}"
+            echo "Deploying $IMAGE_URI"
 
-          echo "Deploying IMAGE_URI=$IMAGE_URI"
+            cd ~/SI_Card_Bot
 
-          if [ -z "$IMAGE_URI" ]; then
-            echo "ERROR: IMAGE_URI is empty"
-            exit 1
-          fi
+            echo "IMAGE_URI=$IMAGE_URI" > .env
 
-          ssh -i ~/.ssh/id_rsa \
-            $EC2_USER@${{ secrets.EC2_HOST }} \
-            AWS_REGION='${{ secrets.AWS_REGION }}' \
-            IMAGE_URI="$IMAGE_URI" \
-            'bash -s' << 'EOF'
-
-          set -euo pipefail
-
-          echo "EC2 received IMAGE_URI=$IMAGE_URI"
-
-          if [ -z "$IMAGE_URI" ]; then
-            echo "ERROR: IMAGE_URI is empty on EC2"
-            exit 1
-          fi
-
-          REGISTRY=$(echo "$IMAGE_URI" | cut -d'/' -f1)
-          REGION="${AWS_REGION}"
-
-          echo "Using registry: $REGISTRY"
-          echo "Using region: $REGION"
-
-          if [ -z "$REGISTRY" ] || [ -z "$REGION" ]; then
-            echo "ERROR: Failed to derive REGISTRY or REGION"
-            exit 1
-          fi
-
-          sudo systemctl enable --now docker || true
-          cd ~/SI_Card_Bot
-
-          aws ecr get-login-password --region "$REGION" \
-            | sudo docker login --username AWS --password-stdin "$REGISTRY"
-
-          sudo docker compose pull si-card-bot
-          sudo docker compose up -d
-
+            docker compose pull si-card-bot
+            docker compose up -d --remove-orphans
           EOF
