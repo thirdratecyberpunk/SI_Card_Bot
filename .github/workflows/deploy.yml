@@ -76,10 +76,13 @@ jobs:
           ssh -i ~/.ssh/id_rsa \
             $EC2_USER@${{ secrets.EC2_HOST }} \
             IMAGE_URI="${{ env.IMAGE_URI }}" \
-            'bash -s' << 'EOF'
+            'bash -s' << EOF
           set -e
 
           echo "EC2 received IMAGE_URI=$IMAGE_URI"
+
+          # Make IMAGE_URI visible to docker compose
+          export IMAGE_URI="$IMAGE_URI"
 
           # Ensure docker is running
           sudo systemctl enable --now docker || true
