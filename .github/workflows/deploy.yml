@@ -84,6 +84,9 @@ jobs:
           # Ensure docker is running
           sudo systemctl enable --now docker || true
 
+          # Move into the compose directory
+          cd ~/SI_Card_Bot
+
           # Login to ECR using instance role
           if command -v aws >/dev/null 2>&1; then
             ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
