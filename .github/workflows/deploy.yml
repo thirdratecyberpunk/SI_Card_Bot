@@ -43,7 +43,10 @@ jobs:
           docker push "$IMAGE_URI"
 
           # Write output AFTER docker build and push
-          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
+          # multi line to get over silent secret hiding
+          echo "image_uri<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$IMAGE_URI" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
         env:
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
 
