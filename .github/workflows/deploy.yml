@@ -80,7 +80,7 @@ jobs:
             AWS_SECRET_ACCESS_KEY='${{ secrets.AWS_SECRET_ACCESS_KEY }}' \
             AWS_REGION='${{ secrets.AWS_REGION }}' \
             IMAGE_URI="${{ env.IMAGE_URI }}" \
-            'bash -s' << 'EOF'
+            'bash -s' << EOF
           set -euo pipefail
 
           echo "EC2 received IMAGE_URI=$IMAGE_URI"
