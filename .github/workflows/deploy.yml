@@ -38,7 +38,7 @@ jobs:
           docker push "$IMAGE_URI"
           echo "$IMAGE_URI" > image_uri.txt
       - name: Upload image URI
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: image_uri
           path: image_uri.txt
@@ -51,7 +51,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download image URI
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: image_uri
 
