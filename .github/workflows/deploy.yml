@@ -65,16 +65,27 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.EC2_HOST }} << EOF
-            set -euo pipefail
+          ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.EC2_HOST }} \
+            "IMAGE_URI='${IMAGE_URI}' bash -s" << 'EOF'
 
-            echo "Deploying $IMAGE_URI"
+          set -euo pipefail
 
-            cd ~/SI_Card_Bot
+          echo "Deploying $IMAGE_URI"
 
-            aws ecr get-login-password --region eu-west-2 \
-            | sudo docker login --username AWS --password-stdin 623027687009.dkr.ecr.eu-west-2.amazonaws.com
+          cd ~/SI_Card_Bot
 
-            docker compose pull si-card-bot
-            docker compose up -d --remove-orphans
+          ACCOUNT_ID=$(echo "$IMAGE_URI" | cut -d'.' -f1)
+          REGION="eu-west-2"
+          REGISTRY="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
+
+          echo "Logging into ECR: $REGISTRY"
+
+          aws ecr get-login-password --region "$REGION" \
+            | sudo docker login --username AWS --password-stdin "$REGISTRY"
+
+          echo "Pulling image..."
+          sudo docker compose pull si-card-bot
+
+          echo "Starting containers..."
+          sudo docker compose up -d --remove-orphans
           EOF
