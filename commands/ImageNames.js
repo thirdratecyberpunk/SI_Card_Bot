@@ -578,4 +578,4 @@ exports.event = event;
 exports.eventAliases = eventAliases;
 exports.blightedIsland = blightedIsland;
 exports.stillHealthyIsland = stillHealthyIsland;
-exports.allBlightCards = [].concat(blightedIsland).concat(stillHealthyIsland);
+exports.blight = [].concat(blightedIsland).concat(stillHealthyIsland);

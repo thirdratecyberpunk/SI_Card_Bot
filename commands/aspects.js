@@ -3,22 +3,29 @@
  */
 const { spirits } = require("./spiritNames.js");
 const spiritCommand = require("./spirit.js"); // to reuse searchForSpirit
+const { PaginatedMessage } = require("@sapphire/discord.js-utilities");
 
 module.exports = {
   name: "aspects",
   description: "Lists all aspects or lists aspects for a given spirit.",
   public: true,
-  execute(msg, args) {
+  async execute(msg, args) {
     try {
       if (!args || args.length === 0) {
-        // list all spirits with aspects
-        let out = "Currently, the following spirits have aspects:\n";
+        const paginated = new PaginatedMessage();
+
         for (const sp of spirits) {
-          if (sp && Array.isArray(sp.aspects) && sp.aspects.length > 0) {
-            out += `${sp.name} ${sp.emote}: ${formatAspectsList(sp.aspects)}\n`;
-          }
+          if (!sp || !Array.isArray(sp.aspects) || sp.aspects.length === 0)
+            continue;
+
+          paginated.addPageEmbed((embed) =>
+            embed
+              .setTitle(`${sp.name} ${sp.emote}`)
+              .setDescription(formatAspectsList(sp.aspects)),
+          );
         }
-        return msg.channel.send(out);
+
+        return paginated.run(msg);
       }
 
       const input = args.join(" ").trim();
@@ -46,7 +53,7 @@ module.exports = {
       return msg.channel.send(out);
     } catch (e) {
       console.error(e);
-      return msg.channel.send("Error searching for spirit: " + e.toString());
+      return msg.channel.send("Error searching for aspects: " + e.toString());
     }
   },
 };

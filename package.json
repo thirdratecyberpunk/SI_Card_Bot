@@ -14,8 +14,11 @@
   "author": "thirdratecyberpunk",
   "license": "ISC",
   "dependencies": {
+    "@discordjs/builders": "^1.14.1",
+    "@sapphire/discord.js-utilities": "^7.3.3",
+    "@sapphire/utilities": "^3.18.2",
     "await-to-js": "^2.1.1",
-    "discord.js": "^14.14.1",
+    "discord.js": "^14.26.3",
     "dotenv": "^8.2.0",
     "express": "^5.2.1",
     "js-levenshtein": "^1.1.6",

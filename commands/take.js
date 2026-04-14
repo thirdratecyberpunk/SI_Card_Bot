@@ -13,11 +13,11 @@ module.exports = {
     try {
       if (args.length < 1) {
         throw new Error(
-          "Please specify a type of card to draw (minor, major, fear or event). For more than 1 card, use -draw instead.",
+          "Please specify a type of card to draw (minor, major, fear, event, blight). For more than 1 card, use -draw instead.",
         );
       }
 
-      let drawableCards = ["minor", "major", "fear", "event"];
+      let drawableCards = ["minor", "major", "fear", "event", "blight"];
       drawnType = args[0].toLowerCase();
 
       if (drawableCards.includes(drawnType)) {

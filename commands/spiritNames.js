@@ -204,7 +204,8 @@ var Keeper = {
     "sacrosanct_wilderness",
     "towering_wrath",
   ],
-  aliases: [
+  aliases: [],
+  aspects: [
     {
       name: "Spreading Hostility",
       emote: "<:TokenBadlands:852366051454746665>",
@@ -268,6 +269,7 @@ var ManyMinds = {
     "evermultiplying_swarm",
   ],
   aliases: ["bird"],
+  aspects: [],
   set: "je",
 };
 

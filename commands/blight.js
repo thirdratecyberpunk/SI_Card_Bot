@@ -10,7 +10,7 @@ module.exports = {
     await s.sendCardLink(
       msg,
       args,
-      ImageNames.allBlightCards,
+      ImageNames.blight,
       "https://sick.oberien.de/imgs/blights/",
     );
   },

@@ -54,7 +54,7 @@ function getRandomDraws(drawnType, drawAmount = 4) {
     );
   }
 
-  let drawableCards = ["minor", "major", "fear", "event"];
+  let drawableCards = ["minor", "major", "fear", "event", "blight"];
 
   let list = [];
   length = 0;
@@ -82,7 +82,7 @@ function getRandomDraws(drawnType, drawAmount = 4) {
     }
   } else {
     throw new Error(
-      "Please specify a type of card to draw (minor, major, fear or event) (defaults to 4 cards drawn).",
+      "Please specify a type of card to draw (minor, major, fear, event, blight) (defaults to 4 cards drawn).",
     );
   }
 }

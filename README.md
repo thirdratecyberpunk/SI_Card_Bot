@@ -4,12 +4,13 @@ Discord App for Spirit island
 
 **Invite code**: https://discord.com/oauth2/authorize?client_id=1120665987331661904&permissions=292058114048&integration_type=0&scope=bot
 
-### How to run the bot -
+### How to run the bot
+
+You will need (Docker)[https://www.docker.com/] installed and a (Discord Developer API)[https://docs.discord.com/developers/reference] key.
 
 - Clone this repo
 - Copy `.env.template` into `.env` and fill in the variables
-- `npm install` to install all pre-requisites
-- `npm start` to run the bot
+- `docker-compose up -d --build`
 
 ### Bot Commands
 

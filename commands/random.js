@@ -5,6 +5,7 @@ const spirits = require("./spiritNames.js").spirits;
 const regularBoards = require("./boardNames.js").regularBoards;
 const thematicBoards = require("./boardNames.js").thematicBoards;
 const allBoards = require("./boardNames.js").allBoards;
+const blight = require("./ImageNames.js").blight;
 
 const complexities = require("./complexities.js").complexities;
 
@@ -43,6 +44,17 @@ module.exports = {
           answer = chooseScenario();
           await sendMessage(msg, answer);
           break;
+        // TODO: this is a bit ugly and should probably be refactored to avoid DRY
+        // but this module is a mixture of
+        // case "blight":
+        //   answer = chooseBlightCard();
+        //   await s.sendCardLink(
+        //     msg,
+        //     args,
+        //     blight,
+        //     "https://sick.oberien.de/imgs/blights/",
+        //   );
+        //   break;
         case "board":
           // check if user has specified thematic or not
           let boardType = args[1] ? args[1] : "regular";
@@ -264,6 +276,18 @@ function chooseDoubleAdversary(minDifficulty = 1, maxDifficulty = 20) {
 function chooseScenario() {
   let s = Math.floor(Math.random() * scenario.length);
   return [scenario[s].name, scenario[s].linkBack];
+}
+
+/**
+ * returns a blight card
+ * @param {*} selection
+ * @param {*} min
+ * @param {*} max
+ * @returns
+ */
+function chooseBlightCard() {
+  let s = Math.floor(Math.random() * blight.length);
+  return blight[s];
 }
 
 /**
