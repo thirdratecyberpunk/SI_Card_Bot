@@ -20,8 +20,8 @@ var help =
 	\n -random double (min difficulty) (max difficulty) \
 	\n -random scenario \
 	\n -spirit (front/back) [keywords] \
-	\n - -aspect (aspect name) [number of card (i.e. Locus part 1/2)] \
-	\n- -aspects (spirit name) \
+	\n -aspect (aspect name) [number of card (i.e. Locus part 1/2)] \
+	\n -aspects (spirit name) \
 	\n -healing [keyword] \
 	\n -incarna [keyword] (front/back) \
 	\n -scenario (front/back) [keywords] \
