@@ -83,8 +83,8 @@ jobs:
             | sudo docker login --username AWS --password-stdin "$REGISTRY"
 
           echo "Pulling image..."
-          sudo docker compose pull si-card-bot
+          sudo IMAGE_URI="$IMAGE_URI" docker compose pull si-card-bot
 
           echo "Starting containers..."
-          sudo docker compose up -d --remove-orphans
+          sudo IMAGE_URI="$IMAGE_URI" docker compose up -d --remove-orphans
           EOF
