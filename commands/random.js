@@ -234,7 +234,11 @@ function chooseDoubleAdversary(minDifficulty = 1, maxDifficulty = 20) {
       supportingAdversary = adversaryCandidates[keys[supportingAdversaryIndex]];
       supportingLevel = 6;
       supportingDifficulty = supportingAdversary[1].difficulty[supportingLevel];
-      totalDifficulty = leadingDifficulty + supportingDifficulty * 0.75;
+      // determine high/low between leading and supporting difficulties
+      const high = Math.max(leadingDifficulty, supportingDifficulty);
+      const low = Math.min(leadingDifficulty, supportingDifficulty);
+      // compute total as highest + 0.75 * lowest
+      totalDifficulty = high + 0.75 * low;
       if (
         totalDifficulty <= maxDifficulty &&
         totalDifficulty >= minDifficulty
@@ -248,7 +252,11 @@ function chooseDoubleAdversary(minDifficulty = 1, maxDifficulty = 20) {
       supportingAdversary = adversaryCandidates[keys[supportingAdversaryIndex]];
       supportingLevel = Math.floor(Math.random() * keys.length);
       supportingDifficulty = supportingAdversary[1].difficulty[supportingLevel];
-      totalDifficulty = leadingDifficulty + supportingDifficulty * 0.75;
+      // determine high/low between leading and supporting difficulties
+      const high = Math.max(leadingDifficulty, supportingDifficulty);
+      const low = Math.min(leadingDifficulty, supportingDifficulty);
+      // compute total as highest + 0.75 * lowest
+      totalDifficulty = high + 0.75 * low;
       if (
         totalDifficulty <= maxDifficulty &&
         totalDifficulty >= minDifficulty
