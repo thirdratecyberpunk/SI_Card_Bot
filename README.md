@@ -6,7 +6,7 @@ Discord App for Spirit island
 
 ### How to run the bot
 
-You will need (Docker)[https://www.docker.com/] installed and a (Discord Developer API)[https://docs.discord.com/developers/reference] key.
+You will need [Docker](https://www.docker.com/) installed and a [Discord Developer API](https://docs.discord.com/developers/reference) key.
 
 - Clone this repo
 - Copy `.env.template` into `.env` and fill in the variables
