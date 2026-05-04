@@ -9,6 +9,8 @@ const blight = require("./ImageNames.js").blight;
 
 const complexities = require("./complexities.js").complexities;
 
+const { combineDifficulty } = require("../utils/difficulty.js");
+
 module.exports = {
   name: "random",
   description:
@@ -44,17 +46,6 @@ module.exports = {
           answer = chooseScenario();
           await sendMessage(msg, answer);
           break;
-        // TODO: this is a bit ugly and should probably be refactored to avoid DRY
-        // but this module is a mixture of
-        // case "blight":
-        //   answer = chooseBlightCard();
-        //   await s.sendCardLink(
-        //     msg,
-        //     args,
-        //     blight,
-        //     "https://sick.oberien.de/imgs/blights/",
-        //   );
-        //   break;
         case "board":
           // check if user has specified thematic or not
           let boardType = args[1] ? args[1] : "regular";
@@ -226,43 +217,27 @@ function chooseDoubleAdversary(minDifficulty = 1, maxDifficulty = 20) {
 
   // pick difficulty level, checking that combination is not more than max and not less than min
   // assuming that >15 requires at least 1 level 6 adversary
-  // TODO: refactor this to avoid code duplication
-  // will probably rewrite once I get a sense of if the benchmarks for adversary difficulty assumptions are reasonable
-  if (minDifficulty >= 15) {
-    while (supportingDifficultySearch) {
-      supportingAdversaryIndex = keys[Math.floor(Math.random() * keys.length)];
-      supportingAdversary = adversaryCandidates[keys[supportingAdversaryIndex]];
-      supportingLevel = 6;
-      supportingDifficulty = supportingAdversary[1].difficulty[supportingLevel];
-      // determine high/low between leading and supporting difficulties
-      const high = Math.max(leadingDifficulty, supportingDifficulty);
-      const low = Math.min(leadingDifficulty, supportingDifficulty);
-      // compute total as highest + 0.75 * lowest
-      totalDifficulty = high + 0.75 * low;
-      if (
-        totalDifficulty <= maxDifficulty &&
-        totalDifficulty >= minDifficulty
-      ) {
-        supportingDifficultySearch = false;
-      }
-    }
-  } else {
-    while (supportingDifficultySearch) {
-      supportingAdversaryIndex = keys[Math.floor(Math.random() * keys.length)];
-      supportingAdversary = adversaryCandidates[keys[supportingAdversaryIndex]];
-      supportingLevel = Math.floor(Math.random() * keys.length);
-      supportingDifficulty = supportingAdversary[1].difficulty[supportingLevel];
-      // determine high/low between leading and supporting difficulties
-      const high = Math.max(leadingDifficulty, supportingDifficulty);
-      const low = Math.min(leadingDifficulty, supportingDifficulty);
-      // compute total as highest + 0.75 * lowest
-      totalDifficulty = high + 0.75 * low;
-      if (
-        totalDifficulty <= maxDifficulty &&
-        totalDifficulty >= minDifficulty
-      ) {
-        supportingDifficultySearch = false;
-      }
+  // decide level generator based on minDifficulty
+  const pickSupportingLevel =
+    minDifficulty >= 15
+      ? () => 6
+      : (ad) => Math.floor(Math.random() * ad[1].difficulty.length);
+
+  // single loop
+  while (supportingDifficultySearch) {
+    supportingAdversaryIndex = keys[Math.floor(Math.random() * keys.length)];
+    supportingAdversary = adversaryCandidates[keys[supportingAdversaryIndex]];
+
+    supportingLevel = pickSupportingLevel(supportingAdversary);
+    supportingDifficulty = supportingAdversary[1].difficulty[supportingLevel];
+
+    totalDifficulty = combineDifficulty(
+      leadingDifficulty,
+      supportingDifficulty,
+    );
+
+    if (totalDifficulty <= maxDifficulty && totalDifficulty >= minDifficulty) {
+      supportingDifficultySearch = false;
     }
   }
 
