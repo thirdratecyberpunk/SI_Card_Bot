@@ -5,6 +5,7 @@
 const Discord = require("discord.js");
 const { InvaderDeckCard } = require("./deckCalc.js");
 
+// TODO: extract these definitions into file separate from helper utilities
 var habsburgmining = {
   title: "habsburg_mining",
   name: "Habsburg Mining Expedition",
@@ -776,4 +777,88 @@ ad.set("scotland", scotland);
 ad.set("sweden", sweden);
 ad.set("habsburgmining", habsburgmining);
 
-exports.ad = ad;
+// Helper: find by token (exact title match first, then alias substring)
+function findByToken(token) {
+  if (!token) return null;
+  const t = token.toLowerCase();
+  // exact title match
+  for (const [, a] of ad) {
+    if ((a.title || "").toLowerCase() === t) return a;
+  }
+  // alias substring match
+  for (const [, a] of ad) {
+    if (!Array.isArray(a.alias)) continue;
+    for (const alias of a.alias) {
+      if (String(alias).toLowerCase().indexOf(t) >= 0) return a;
+    }
+  }
+  return null;
+}
+
+// TODO: extract this helper into adversary parsing util
+const isValidAdversaryLevel = (adversaryLevel) => {
+  return !(isNaN(adversaryLevel) || adversaryLevel < 0 || adversaryLevel > 6);
+};
+
+/**
+ * parseSetupArgs(args)
+ * args: array (e.g. ["prussia","6"] or ["prussia","6","scotland","6"])
+ * returns: { leadingAdversary, leadingLevel, supportingAdversary?, supportingLevel? }
+ * throws Error on invalid input (caller should catch and report to user)
+ */
+function parseSetupArgs(args) {
+  if (!Array.isArray(args)) throw new Error("Invalid arguments");
+  if (args.length !== 2 && args.length !== 4) {
+    throw new Error(
+      "Please provide either 2 or 4 arguments (e.g. 'prussia 6' or 'prussia 6 scotland 6').",
+    );
+  }
+
+  const leadToken = String(args[0]).toLowerCase();
+  const leadingLevel = Number.parseInt(args[1]);
+  if (!isValidAdversaryLevel(leadingLevel))
+    throw new Error(
+      "Please specify a numeric level between 0 and 6 for the leading adversary.",
+    );
+
+  const leadingAdversary = findByToken(leadToken);
+  if (!leadingAdversary)
+    throw new Error(
+      "Leading adversary not found; try names or nicknames listed in -adversary.",
+    );
+
+  let supportingAdversary = null;
+  let supportingLevel = null;
+  if (args.length === 4) {
+    const suppToken = String(args[2]).toLowerCase();
+    supportingLevel = Number.parseInt(args[3]);
+    if (!isValidAdversaryLevel(supportingLevel))
+      throw new Error(
+        "Please specify a numeric level between 0 and 6 for the supporting adversary.",
+      );
+
+    supportingAdversary = findByToken(suppToken);
+    if (!supportingAdversary)
+      throw new Error(
+        "Supporting adversary not found; try names or nicknames listed in -adversary.",
+      );
+
+    if (supportingAdversary.name === leadingAdversary.name)
+      throw new Error("Please specify two different adversaries.");
+  }
+
+  return {
+    leadingAdversary: leadingAdversary,
+    leadingLevel: leadingLevel,
+    supportingAdversary: supportingAdversary,
+    supportingLevel: supportingLevel,
+  };
+}
+
+// Export registry and helpers
+module.exports = {
+  ad,
+  findByToken,
+  isValidAdversaryLevel,
+  parseSetupArgs,
+};
