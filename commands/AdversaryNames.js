@@ -343,13 +343,13 @@ var france = {
   lossCondition: {
     name: "Sprawling Plantations",
     effect:
-      "Before Setup, return all but 7 :InvaderTown: per player to the box. Invaders win if you ever cannot place a :InvaderTown:.",
+      "Before Setup, return all but 7 :InvaderTown: per player to the box. Invaders win if you ever cannot place a :InvaderTown:. If playing doubles: increase the pool of available Town by 1 per player for each level of the other Adversary being played.",
   },
   // TODO: need to handle stage 3 escalation effects
   escalation: {
     name: "Demand for New Cash Crops",
     effect:
-      "After Exploring, on each board, pick a land of the shown terrain. If it has :InvaderTown:/:InvaderCity:, add 1 :Blight:. Otherwise, add 1 :InvaderTown:.",
+      "After Exploring, on each board, pick a land of the shown terrain. If it has :InvaderTown:/:InvaderCity:, add 1 :Blight:. Otherwise, add 1 :InvaderTown:. Randomly choose one of the land types shown on the card for Stage 3 escalations.",
   },
   rules: {
     1: {
@@ -604,7 +604,6 @@ var scotland = {
         }
         return acc;
       }, []);
-      console.log(`indices of non adversary stage ii cards : ${indices}`);
       // replace the 3rd stage II card that ISN'T an adversary specific
       // card with Coastal card
       d[indices[2]] = new InvaderDeckCard(2, "C");
@@ -646,8 +645,9 @@ var scotland = {
   },
   lossCondition: {
     name: "Trade Hub",
+    // TODO: find a more elegant way of mentioning doubles exceptions
     effect:
-      "On the single board with the most Coastal :InvaderTown:/:InvaderCity:, add 1 :InvaderTown: to the N lands with the fewest :InvaderTown: (N = # of players.)",
+      "If the number of Coastal lands with :InvaderCity: is ever greater than (2 x # of boards), the Invaders win. If the other Adversary's Setup instructions would add :InvaderCity: to a Coastal land other than land #2, instead add the :InvaderCity: to an adjacent Inland land.",
   },
   escalation: {
     name: "Ports Sprawl Outward",
@@ -731,7 +731,7 @@ var sweden = {
   escalation: {
     name: "Swayed by the Invaders",
     effect:
-      "After Invaders Explore into each land this Phase, if that land has at least as many Invaders as :Dahan:, replace 1 :Dahan: with 1 :InvaderTown:.",
+      "After Invaders Explore into each land this Phase, if that land has at least as many Invaders as :Dahan:, replace 1 :Dahan: with 1 :InvaderTown:. Randomly choose one of the land types shown on the card for Stage 3 escalations.",
   },
   rules: {
     1: {

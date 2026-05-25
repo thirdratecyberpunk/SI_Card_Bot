@@ -141,6 +141,8 @@ function chooseAdversary(minDifficulty = 0, maxDifficulty = 11) {
 
 /**
  * returns a double adversary within the given difficulty bounds
+ * TODO: this method is kinda badly implemented and needs reworking to calculate the viable set of combinations for randomisation
+ * TODO: extract difficulty calculation logic into adversary class
  */
 function chooseDoubleAdversary(minDifficulty = 1, maxDifficulty = 20) {
   // error checking

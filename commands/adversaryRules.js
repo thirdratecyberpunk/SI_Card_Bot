@@ -51,7 +51,7 @@ module.exports = {
     //  - <leadingAdversary> <leadingDifficulty>
     //  - <leadingAdversary> <leadingDifficulty> <supportingAdversary> <supportingDifficulty>
     // We'll accept difficulty either as an index (0..6) or as the actual difficulty value appearing in adversary.difficulty.
-
+    // TODO: this should be handled by the parseSetupArgs method for consistency
     if (parts.length < 2) {
       return msg.reply(
         "Please provide at least a leading adversary and a difficulty (e.g. `habsburg_mining 4`).",
@@ -96,6 +96,7 @@ module.exports = {
 
     // Helper: fear deck calculation
     // fearDeckModification is an object mapping difficulty index to an array of 3 numbers (per-stage changes).
+    // TODO: migrate this to be the standard fear deck calculation
     const calcFearDeckCombined = (
       leadAdv,
       leadingLevel,
@@ -126,34 +127,6 @@ module.exports = {
       return base;
     };
 
-    // Helper: invader deck modification description
-    const describeDeckModification = (adversary, diffIndex) => {
-      if (!adversary || !adversary.deckModification)
-        return "No deck modifications.";
-      const mod = adversary.deckModification[diffIndex];
-      if (!mod) return "No deck modification for that difficulty.";
-      // If it's a function, describe it (we cannot execute as we don't have a deck object).
-      if (typeof mod === "function") {
-        // Try to obtain function source summary when possible
-        const src = mod.toString();
-        // brief heuristic to extract short description from comments inside function
-        const commentMatch = src.match(
-          "/\\/\\*([\s\S]*?)\\*\\/|\\/\\/\s*(.*)/",
-        );
-        const brief = commentMatch ? commentMatch[1] || commentMatch[2] : null;
-        return brief
-          ? `Function: ${brief.trim().split("\n")[0].trim()}`
-          : "Function: modifies invader deck programmatically.";
-      }
-      // If it's an array/object, stringify a short version
-      try {
-        const s = JSON.stringify(mod);
-        return s.length > 300 ? s.slice(0, 300) + "…" : s;
-      } catch {
-        return "Deck modification present.";
-      }
-    };
-
     // Compose output table in Markdown (per Formatting Rules: use headings and tables for structured answers)
     // Build rows: Leading adversary, Leading difficulty, Escalation (Stage 2), Loss Condition, Rules
     const leadEsc = leadingAdversary.escalation;
@@ -169,6 +142,7 @@ module.exports = {
       ? getRulesFor(supportingAdversary, supportingLevel)
       : [];
 
+    // TODO: migrate difficulty calculation logic to adversary class
     const combinedDifficulty = leadingLevel + (supportingLevel || 0);
 
     const fearCombined = calcFearDeckCombined(
@@ -178,89 +152,54 @@ module.exports = {
       supportingLevel,
     );
 
-    const leadDeckModDesc = describeDeckModification(
-      leadingAdversary,
-      leadingLevel,
-    );
-    const suppDeckModDesc = supportingAdversary
-      ? describeDeckModification(supportingAdversary, supportingLevel)
-      : "-";
-
     // Build markdown table content
-    // Major heading
     const lines = [];
-    lines.push("## Adversary Setup Summary");
+    // adversary names
+    // adversary difficulty
+    // lines.push(`Difficulty ${combinedDifficulty}`);
+    // adversary invader deck
+    // lines.push("### Invader Deck");
+    // lines.push(`${fearCombined}`);
+    // adversary fear deck
+    // lines.push("### Fear Deck");
+    // lines.push(`${fearCombined}`);
+    // Escalations (there will always be an escalation effect so no default required)
+    lines.push("### Escalations");
     lines.push("");
-    // Top summary table
-    lines.push(
-      "| Role | Adversary | Difficulty (index → value) | Escalation (stage) |",
-    );
-    lines.push("| --- | --- | --- | --- |");
-    lines.push(
-      `| Leading | **\${leadingAdversary.title || leadingAdversary.name}** | \${leadingLevel} → \${leadingLevel} | **\${leadEsc && leadEsc.name ? leadEsc.name : "-"}**: \${leadEsc && leadEsc.effect ? leadEsc.effect : "-"} |`,
-    );
-    if (supportingAdversary) {
+    if (leadEsc) {
       lines.push(
-        `| Supporting | **\${supportingAdversary.title || supportingAdversary.name}** | \${supportingLevel} → \${supportingLevel} | **\${suppEsc && suppEsc.name ? suppEsc.name : "-"}**: \${suppEsc && suppEsc.effect ? suppEsc.effect : "-"} |`,
+        `- **Leading (Stage II):** **${leadEsc.name}** - ${leadEsc.effect}`,
       );
-    } else {
-      lines.push(`| Supporting | - | - | - |`);
     }
-    lines.push("");
-    // Combined difficulty and fear deck
-    lines.push("### Combined Values");
-    lines.push("");
-    lines.push(
-      "| Combined Difficulty | Fear Deck Modifications (Stage I, II, III) |",
-    );
-    lines.push("| --- | --- |");
-    lines.push(`| **${combinedDifficulty}** | [${fearCombined.join(", ")}] |`);
-    lines.push("");
+    if (suppEsc) {
+      lines.push(
+        `- **Supporting (Stage III):** **${suppEsc.name}** - ${suppEsc.effect}`,
+      );
+    }
     // Loss conditions
-    lines.push("### Loss Conditions");
-    lines.push("");
-    if (leadLoss) {
-      lines.push(`- **Leading:** **${leadLoss.name}** - ${leadLoss.effect}`);
+    if (leadLoss || suppLoss) {
+      lines.push("### Loss Conditions");
+      lines.push("");
+      if (leadLoss) {
+        lines.push(`- **${leadLoss.name}** - ${leadLoss.effect}`);
+      }
+      if (suppLoss) {
+        lines.push(`- **${suppLoss.name}** - ${suppLoss.effect}`);
+      }
     }
-    if (suppLoss) {
-      lines.push(`- **Supporting:** **${suppLoss.name}** - ${suppLoss.effect}`);
-    }
-    if (!leadLoss && !suppLoss) {
-      lines.push("- None.");
-    }
-    lines.push("");
-    // Deck modifications
-    lines.push("### Invader Deck Modifications");
-    lines.push("");
-    lines.push(`- **Leading (stage 2):** ${leadDeckModDesc}`);
-    lines.push(`- **Supporting (stage 3):** ${suppDeckModDesc}`);
-    lines.push("");
-    // Rules: provide each adversary's rules in subsections
-    lines.push("### Rules - Leading");
-    lines.push("");
-    if (leadRules.length === 0) {
-      lines.push("- None.");
-    } else {
+    // adversary rules
+    if (leadRules.length > 0 || suppRules.length > 0) {
+      lines.push("### Rules");
+      lines.push("");
       for (const r of leadRules) {
-        lines.push(`- **${r.index}. ${r.name}:** ${r.effect}`);
+        lines.push(`- **${r.name}:** ${r.effect}`);
       }
-    }
-    lines.push("");
-    if (supportingAdversary) {
-      lines.push("### Rules - Supporting");
-      lines.push("");
-      if (suppRules.length === 0) {
-        lines.push("- None.");
-      } else {
-        for (const r of suppRules) {
-          lines.push(`- **${r.index}. ${r.name}:** ${r.effect}`);
-        }
+      for (const r of suppRules) {
+        lines.push(`- **${r.name}:** ${r.effect}`);
       }
       lines.push("");
     }
-
     const message = lines.join("\n");
-
     // Send the composed message
     return msg.reply(message);
   },

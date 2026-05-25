@@ -1,6 +1,9 @@
 const ad = require("./AdversaryNames.js");
 const InvaderDeckCard = require("./InvaderDeckCard.js");
 const Deck = require("./Deck.js");
+// TODO: refactor this to use validity checks from standardised utils
+// TODO: extract method for returning invader deck out into adversary utils
+// TODO: fix Wave of Immigration reminder not appearing
 
 /**
  * Returns whether a single adversary is valid
