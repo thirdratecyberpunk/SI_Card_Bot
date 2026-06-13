@@ -855,10 +855,54 @@ function parseSetupArgs(args) {
   };
 }
 
+/**
+ * Compute fear deck counts for given leading/supporting adversaries and levels.
+ * Params:
+ * - leadingAdversary: adversary object (required)
+ * - leadingLevel: integer 0..6 (required)
+ * - supportingAdversary: adversary object or null (optional)
+ * - supportingLevel: integer 0..6 or null (optional)
+ * Returns: array [stageI, stageII, stageIII]
+ */
+function computeFearDeck(
+  leadingAdversary,
+  leadingLevel,
+  supportingAdversary = null,
+  supportingLevel = null,
+) {
+  if (!leadingAdversary || typeof leadingLevel !== "number") {
+    throw new Error("leadingAdversary and leadingLevel are required");
+  }
+
+  // base deck
+  const base = [3, 3, 3];
+
+  // get modification arrays (validate presence)
+  const leadMod = leadingAdversary.fearDeckModification;
+  if (!leadMod || !Array.isArray(leadMod[leadingLevel])) {
+    throw new Error("Invalid fearDeckModification for leading adversary/level");
+  }
+
+  if (supportingAdversary) {
+    const suppMod = supportingAdversary.fearDeckModification;
+    if (!suppMod || !Array.isArray(suppMod[supportingLevel])) {
+      throw new Error(
+        "Invalid fearDeckModification for supporting adversary/level",
+      );
+    }
+    return base.map(
+      (v, i) => v + leadMod[leadingLevel][i] + suppMod[supportingLevel][i],
+    );
+  } else {
+    return base.map((v, i) => v + leadMod[leadingLevel][i]);
+  }
+}
+
 // Export registry and helpers
 module.exports = {
   ad,
   findByToken,
   isValidAdversaryLevel,
   parseSetupArgs,
+  computeFearDeck,
 };
