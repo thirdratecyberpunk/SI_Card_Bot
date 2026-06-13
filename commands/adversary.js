@@ -1,4 +1,4 @@
-const ad = require("./AdversaryNames.js");
+const { ad } = require("./AdversaryNames.js");
 
 module.exports = {
   name: "adversary",
@@ -13,7 +13,7 @@ module.exports = {
     // if an adversary parameter is provided
     if (args.length != 0) {
       const searchString = args[0].toLowerCase();
-      for (const [name, adversary] of ad.ad) {
+      for (const [name, adversary] of ad) {
         // if there is a panel with that string in the title, return it
         // checks for exact title matches to avoid Prussia - Russia problem
         if (adversary.title.toLowerCase() == searchString) {
@@ -36,7 +36,7 @@ module.exports = {
     // if no match found or no argument provided, assume they want a list of adversaries
     if ((args.length == 0) | !found) {
       panel = "Choose an adversary: \n";
-      for (const [name, adversary] of ad.ad) {
+      for (const [name, adversary] of ad) {
         panel +=
           "* " +
           adversary.name +

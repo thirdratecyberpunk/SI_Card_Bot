@@ -1,8 +1,7 @@
-const ad = require("./AdversaryNames.js");
+const { ad } = require("./AdversaryNames.js");
 const InvaderDeckCard = require("./InvaderDeckCard.js");
 const Deck = require("./Deck.js");
 // TODO: refactor this to use validity checks from standardised utils
-// TODO: extract method for returning invader deck out into adversary utils
 // TODO: fix Wave of Immigration reminder not appearing
 
 /**
@@ -22,6 +21,7 @@ module.exports = {
     "Calculates the invader deck for a given adversary/double adversary set up.",
   public: true,
   async execute(msg, args) {
+    console.log("ad is", ad);
     try {
       if (args.length < 2) {
         throw new Error(
@@ -43,7 +43,7 @@ module.exports = {
       // checks if there's a corresponding adversary for the leading adversary search string
       let leadingAdversary;
       let leadingAdversaryFound = false;
-      for (const [name, adversary] of ad.ad) {
+      for (const [name, adversary] of ad) {
         // if there is a panel with that string in the title, return it
         // checks for exact title matches to avoid Prussia - Russia problem
         if (adversary.title.toLowerCase() == leadingAdversarySearchString) {
@@ -85,7 +85,7 @@ module.exports = {
         // checks if there's a corresponding adversary for the supporting adversary search string
         let supportingAdversaryFound = false;
 
-        for (const [name, adversary] of ad.ad) {
+        for (const [name, adversary] of ad) {
           // if there is a panel with that string in the title, return it
           // checks for exact title matches to avoid Prussia - Russia problem
           if (

@@ -2,7 +2,7 @@
  * Command to return the calculated information about 1 or 2 adversaries
  * (i.e. combined setup instructions, fear deck etc.)
  */
-const ad = require("./AdversaryNames.js");
+const { ad } = require("./AdversaryNames.js");
 
 module.exports = {
   name: "adversaryrules",
@@ -39,10 +39,10 @@ module.exports = {
     // Minimal registry lookup: try to find adversary by title, name, or alias.
     // This `adversaries` object must exist in the same runtime (require or global).
     // If it's not present, return an error.
-    const registry = typeof ad.ad !== "undefined" ? ad.ad : null;
+    const registry = typeof ad !== "undefined" ? ad : null;
     if (!registry) {
       return msg.reply(
-        "Adversary registry not available. Ensure `ad.ad` is populated with adversary objects.",
+        "Adversary registry not available. Ensure `ad` is populated with adversary objects.",
       );
     }
 

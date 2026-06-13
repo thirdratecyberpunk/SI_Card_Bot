@@ -3,7 +3,7 @@
  */
 
 const Discord = require("discord.js");
-const { InvaderDeckCard } = require("./deckCalc.js");
+const InvaderDeckCard = require("./InvaderDeckCard.js");
 
 // TODO: extract these definitions into file separate from helper utilities
 var habsburgmining = {
