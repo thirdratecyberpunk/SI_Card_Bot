@@ -3,6 +3,7 @@
  */
 
 const Discord = require("discord.js");
+const Deck = require("./Deck.js");
 const InvaderDeckCard = require("./InvaderDeckCard.js");
 
 // TODO: extract these definitions into file separate from helper utilities
@@ -805,12 +806,15 @@ const isValidAdversaryLevel = (adversaryLevel) => {
  * args: array (e.g. ["prussia","6"] or ["prussia","6","scotland","6"])
  * returns: { leadingAdversary, leadingLevel, supportingAdversary?, supportingLevel? }
  * throws Error on invalid input (caller should catch and report to user)
+ * TODO: this should probably be middleware for the relevant Discord layer rather than in AdversaryNames
+ * but to be honest the whole project layout needs rethinking if we want to expose the data via
+ * API and not assume this is only for Discord
  */
 function parseSetupArgs(args) {
   if (!Array.isArray(args)) throw new Error("Invalid arguments");
   if (args.length !== 2 && args.length !== 4) {
     throw new Error(
-      "Please provide either 2 or 4 arguments (e.g. 'prussia 6' or 'prussia 6 scotland 6').",
+      "Please specify at least one adversary and a numeric level (-invaderdeck prussia 6) or (-invaderdeck prussia 6 scotland 6).",
     );
   }
 
@@ -898,6 +902,61 @@ function computeFearDeck(
   }
 }
 
+/**
+ * Compute the invader deck for given leading/supporting adversaries and levels.
+ * Params:
+ * - leadingAdversary: adversary object (required)
+ * - leadingLevel: integer 0..6 (required)
+ * - supportingAdversary: adversary object or null (optional)
+ * - supportingLevel: integer 0..6 or null (optional)
+ * Returns: Deck instance (with .cards array of InvaderDeckCard)
+ */
+function computeInvaderDeck(
+  leadingAdversary,
+  leadingLevel,
+  supportingAdversary = null,
+  supportingLevel = null,
+) {
+  if (!leadingAdversary || typeof leadingLevel !== "number") {
+    throw new Error("leadingAdversary and leadingLevel are required");
+  }
+
+  // Start with a fresh deck
+  const deck = new Deck();
+
+  // Apply supporting adversary first (if any)
+  if (supportingAdversary) {
+    for (let lvl = 0; lvl <= supportingLevel; lvl++) {
+      if (supportingAdversary.deckModification[lvl]) {
+        deck.cards = supportingAdversary.deckModification[lvl](deck.cards);
+      }
+    }
+  }
+
+  // Apply leading adversary second
+  for (let lvl = 0; lvl <= leadingLevel; lvl++) {
+    if (leadingAdversary.deckModification[lvl]) {
+      deck.cards = leadingAdversary.deckModification[lvl](deck.cards);
+    }
+  }
+
+  // Special-case: Habsburg Livestock reminder card (Level 5+)
+  const needsHLCReminder =
+    (supportingAdversary &&
+      supportingAdversary.title === "habsburg_livestock" &&
+      supportingLevel >= 5) ||
+    (leadingAdversary &&
+      leadingAdversary.title === "habsburg_livestock" &&
+      leadingLevel >= 5);
+
+  if (needsHLCReminder) {
+    const reminder = new InvaderDeckCard(0, "Wave of Immigration Reminder");
+    deck.cards.splice(5, 0, reminder);
+  }
+
+  return deck;
+}
+
 // Export registry and helpers
 module.exports = {
   ad,
@@ -905,4 +964,5 @@ module.exports = {
   isValidAdversaryLevel,
   parseSetupArgs,
   computeFearDeck,
+  computeInvaderDeck,
 };
