@@ -18,6 +18,7 @@ module.exports = {
   public: true,
 
   async execute(msg, args) {
+    // Normalize args
     let parts = [];
     if (!args) args = [];
     if (typeof args === "string") {
@@ -30,6 +31,7 @@ module.exports = {
       return msg.reply("Adversary registry not available.");
     }
 
+    // Parse adversaries
     let leadingAdversary, leadingLevel, supportingAdversary, supportingLevel;
     try {
       const parsed = parseSetupArgs(parts);
@@ -41,6 +43,7 @@ module.exports = {
       return msg.reply(err.message || String(err));
     }
 
+    // Compute decks
     const fearDeck = computeFearDeck(
       leadingAdversary,
       leadingLevel,
@@ -55,6 +58,7 @@ module.exports = {
       supportingLevel,
     );
 
+    // Difficulty
     const leadingDifficulty = leadingAdversary.difficulty[leadingLevel];
     const supportingDifficulty = supportingAdversary
       ? supportingAdversary.difficulty[supportingLevel]
@@ -65,6 +69,7 @@ module.exports = {
       supportingDifficulty,
     );
 
+    // Escalations, loss, rules
     const leadEsc = leadingAdversary.escalation;
     const suppEsc = supportingAdversary?.escalation ?? null;
 
@@ -76,12 +81,18 @@ module.exports = {
       ? getRulesForAdversary(supportingAdversary, supportingLevel)
       : [];
 
+    // Build output
     const lines = [];
 
-    // TODO: move the name calculation to handler within adversary file, feels like this might be reusable
     lines.push(
-      `## ${leadingAdversary.name} ${leadingLevel} ${supportingAdversary ? " + " + supportingAdversary.name : ""} ${supportingAdversary ? " " + supportingLevel : ""} ${leadingAdversary.emote} ${supportingAdversary ? supportingAdversary.emote : ""}`,
+      `## ${leadingAdversary.name} ${leadingLevel}` +
+        (supportingAdversary
+          ? ` + ${supportingAdversary.name} ${supportingLevel}`
+          : "") +
+        ` ${leadingAdversary.emote}` +
+        (supportingAdversary ? ` ${supportingAdversary.emote}` : ""),
     );
+
     lines.push(`**Difficulty:** ${combinedDifficulty}`);
 
     lines.push("### Invader Deck");
@@ -106,20 +117,22 @@ module.exports = {
       if (suppLoss) lines.push(`- **${suppLoss.name}** — ${suppLoss.effect}`);
     }
 
-    // if it's a doubles and either of the adversaries has any exceptions during doubles
+    // Doubles exceptions
     if (
       supportingAdversary &&
       (leadingAdversary.doublesNotes || supportingAdversary.doublesNotes)
     ) {
       lines.push("### Doubles modifications");
-      if (leadingAdversary.doublesNotes)
+      if (leadingAdversary.doublesNotes) {
         lines.push(
           `- **${leadingAdversary.name}** — ${leadingAdversary.doublesNotes}`,
         );
-      if (supportingAdversary && supportingAdversary.doublesNotes)
+      }
+      if (supportingAdversary && supportingAdversary.doublesNotes) {
         lines.push(
           `- **${supportingAdversary.name}** — ${supportingAdversary.doublesNotes}`,
         );
+      }
     }
 
     if (leadRules.length || suppRules.length) {
@@ -132,6 +145,32 @@ module.exports = {
       }
     }
 
-    return msg.reply(lines.join("\n"));
+    const output = lines.join("\n");
+
+    // If short enough, send normally
+    if (output.length <= 1800) {
+      return msg.reply(output);
+    }
+
+    // Otherwise send as markdown file
+    const filename =
+      `${leadingAdversary.title}_${leadingLevel}` +
+      (supportingAdversary
+        ? `_${supportingAdversary.title}_${supportingLevel}`
+        : "") +
+      `.md`;
+
+    const buffer = Buffer.from(output, "utf-8");
+
+    return msg.reply({
+      content:
+        `## ${leadingAdversary.name} ${leadingLevel}` +
+        (supportingAdversary
+          ? ` + ${supportingAdversary.name} ${supportingLevel}`
+          : "") +
+        ` ${leadingAdversary.emote}` +
+        (supportingAdversary ? ` ${supportingAdversary.emote}` : ""),
+      files: [{ attachment: buffer, name: filename }],
+    });
   },
 };
