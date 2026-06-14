@@ -265,9 +265,9 @@ var england = {
       "If 7 or more :InvaderTown:/:InvaderCity: are ever in a single land, the Invaders win.",
   },
   escalation: {
-    name: "Land Rush",
+    name: "Building Boom",
     effect:
-      "On each board with :InvaderTown:/:InvaderCity:, add 1 :InvaderTown: to a land without :InvaderTown:.",
+      "On each board with :InvaderTown:/:InvaderCity:, Build in the land with the most :InvaderTown:/:InvaderCity:",
   },
   rules: {
     1: {
