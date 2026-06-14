@@ -174,7 +174,7 @@ function chooseDoubleAdversary(minDifficulty = 1, maxDifficulty = 17) {
   const answer =
     `LEADING: ${choice.leadingAdversary.name} ${choice.leadingLevel}\n` +
     `SUPPORTING: ${choice.supportingAdversary.name} ${choice.supportingLevel}\n` +
-    `(difficulty ${choice.totalDifficulty})`;
+    `(difficulty (rounded) ${choice.totalDifficulty})`;
 
   return [
     answer,

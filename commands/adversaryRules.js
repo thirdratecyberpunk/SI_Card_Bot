@@ -94,6 +94,11 @@ module.exports = {
     );
 
     lines.push(`**Difficulty:** ${combinedDifficulty}`);
+    if (supportingAdversary) {
+      lines.push(
+        `**Difficulty is calculated as 100% of higher difficulty + 62.5% of lower difficulty rounded`,
+      );
+    }
 
     lines.push("### Invader Deck");
     lines.push(invaderDeck.formattedDeck());
