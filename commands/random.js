@@ -141,112 +141,44 @@ function chooseAdversary(minDifficulty = 0, maxDifficulty = 11) {
 
 /**
  * returns a double adversary within the given difficulty bounds
- * TODO: this method is kinda badly implemented and needs reworking to calculate the viable set of combinations for randomisation
  * TODO: extract difficulty calculation logic into adversary class
  */
-function chooseDoubleAdversary(minDifficulty = 1, maxDifficulty = 20) {
-  // error checking
-  // TODO: make this throw an exception
+function chooseDoubleAdversary(minDifficulty = 1, maxDifficulty = 17) {
   if (
     maxDifficulty < minDifficulty ||
-    maxDifficulty > 20 ||
+    maxDifficulty > 17 ||
     minDifficulty < 1 ||
-    minDifficulty > 18 ||
-    maxDifficulty == minDifficulty
+    minDifficulty > 17 ||
+    maxDifficulty === minDifficulty
   ) {
     return [
-      "For a double adversary, specify a difficulty range between 1 and 20.",
-      "Difficulty should be specified as an integer greater or equal to 1 and less than 18 followed by an integer less than or equal to 20.",
+      "For a double adversary, specify a difficulty range between 1 and 17.",
+      "Difficulty should be specified as an integer greater or equal to 1 and less than 17 followed by an integer less than or equal to 17.",
     ];
   }
 
-  let adversaryCandidates = Array.from(adversary);
-  // pick first adversary
-  var leadingDifficultySearch = true;
-  let keys = Array.from(adversaryCandidates.keys());
-  let leadingAdversary;
-  let leadingAdversaryIndex;
-  let leadingDifficulty;
-  let totalDifficulty;
+  const candidates = buildDoubleAdversaryCandidates(
+    minDifficulty,
+    maxDifficulty,
+  );
 
-  // if the minimum difficulty is greater than 10, assume that they want at least 1 level 4+ adversary (avoids leading being too low for possible search)
-  if (minDifficulty >= 10 && minDifficulty < 15) {
-    leadingAdversaryIndex = keys[Math.floor(Math.random() * keys.length)];
-    leadingAdversary = adversaryCandidates[keys[leadingAdversaryIndex]];
-    leadingLevel = Math.floor(Math.random() * 3 + 4);
-    leadingDifficulty = leadingAdversary[1].difficulty[leadingLevel];
-
-    if (leadingDifficulty < maxDifficulty) {
-      leadingDifficultySearch = false;
-    }
-  }
-  // if it's greater than 15, assume they want at least 1 level 6 adversary
-  else if (minDifficulty >= 15) {
-    leadingAdversaryIndex = keys[Math.floor(Math.random() * keys.length)];
-    leadingAdversary = adversaryCandidates[keys[leadingAdversaryIndex]];
-    leadingLevel = 6;
-    leadingDifficulty = leadingAdversary[1].difficulty[leadingLevel];
-
-    if (leadingDifficulty < maxDifficulty) {
-      leadingDifficultySearch = false;
-    }
-  } else {
-    // pick difficulty level, checking that it is not more than the maximum difficulty
-    while (leadingDifficultySearch) {
-      leadingAdversaryIndex = keys[Math.floor(Math.random() * keys.length)];
-      leadingAdversary = adversaryCandidates[keys[leadingAdversaryIndex]];
-      leadingLevel = Math.floor(
-        Math.random() * leadingAdversary[1].difficulty.length,
-      );
-      leadingDifficulty = leadingAdversary[1].difficulty[leadingLevel];
-
-      if (leadingDifficulty < maxDifficulty) {
-        leadingDifficultySearch = false;
-      }
-    }
+  if (candidates.length === 0) {
+    return [
+      `No double adversary combinations exist in the difficulty range ${minDifficulty}–${maxDifficulty}.`,
+      "Try widening the range or lowering the minimum difficulty.",
+    ];
   }
 
-  // remove first adversary from collection to prevent double doubles
-  adversaryCandidates.splice(leadingAdversaryIndex, 1);
-  keys = Array.from(adversaryCandidates.keys());
+  const choice = candidates[Math.floor(Math.random() * candidates.length)];
 
-  // pick second adversary
-  var supportingDifficultySearch = true;
-  let supportingLevel = "";
-  let supportingAdversary;
-  let supportingAdversaryIndex;
-  let supportingDifficulty;
+  const answer =
+    `LEADING: ${choice.leadingAdversary.name} ${choice.leadingLevel}\n` +
+    `SUPPORTING: ${choice.supportingAdversary.name} ${choice.supportingLevel}\n` +
+    `(difficulty ${choice.totalDifficulty})`;
 
-  // pick difficulty level, checking that combination is not more than max and not less than min
-  // assuming that >15 requires at least 1 level 6 adversary
-  // decide level generator based on minDifficulty
-  const pickSupportingLevel =
-    minDifficulty >= 15
-      ? () => 6
-      : (ad) => Math.floor(Math.random() * ad[1].difficulty.length);
-
-  // single loop
-  while (supportingDifficultySearch) {
-    supportingAdversaryIndex = keys[Math.floor(Math.random() * keys.length)];
-    supportingAdversary = adversaryCandidates[keys[supportingAdversaryIndex]];
-
-    supportingLevel = pickSupportingLevel(supportingAdversary);
-    supportingDifficulty = supportingAdversary[1].difficulty[supportingLevel];
-
-    totalDifficulty = combineDifficulty(
-      leadingDifficulty,
-      supportingDifficulty,
-    );
-
-    if (totalDifficulty <= maxDifficulty && totalDifficulty >= minDifficulty) {
-      supportingDifficultySearch = false;
-    }
-  }
-
-  let answer = `LEADING: ${leadingAdversary[1].name} ${leadingLevel} \nSUPPORTING: ${supportingAdversary[1].name} ${supportingLevel} \n (difficulty ${totalDifficulty})`;
   return [
     answer,
-    `${leadingAdversary[1].emote}${supportingAdversary[1].emote}`,
+    `${choice.leadingAdversary.emote}${choice.supportingAdversary.emote}`,
     "",
   ];
 }
@@ -297,4 +229,48 @@ function chooseBoard(boardType = "regular") {
   console.log(s);
   console.log(board[s].name, board[s].link);
   return [board[s].name, board[s].link];
+}
+
+/**
+ * Precomputes a range of valid adversary combinations that meet a given difficulty range
+ * @param {*} minDifficulty
+ * @param {*} maxDifficulty
+ * @returns
+ */
+function buildDoubleAdversaryCandidates(minDifficulty, maxDifficulty) {
+  const candidates = [];
+  const adversaries = Array.from(adversary.values()); // Discord.Collection → array of adversary objects
+
+  for (const lead of adversaries) {
+    for (let leadLevel = 0; leadLevel < lead.difficulty.length; leadLevel++) {
+      const leadDiff = lead.difficulty[leadLevel];
+
+      for (const supp of adversaries) {
+        if (supp === lead) continue; // no doubles of same adversary
+
+        for (
+          let suppLevel = 0;
+          suppLevel < supp.difficulty.length;
+          suppLevel++
+        ) {
+          const suppDiff = supp.difficulty[suppLevel];
+
+          const total = combineDifficulty(leadDiff, suppDiff);
+
+          if (total >= minDifficulty && total <= maxDifficulty) {
+            candidates.push({
+              leadingAdversary: lead,
+              leadingLevel: leadLevel,
+              leadingDifficulty: leadDiff,
+              supportingAdversary: supp,
+              supportingLevel: suppLevel,
+              supportingDifficulty: suppDiff,
+              totalDifficulty: total,
+            });
+          }
+        }
+      }
+    }
+  }
+  return candidates;
 }
