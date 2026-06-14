@@ -34,7 +34,7 @@ You will need [Docker](https://www.docker.com/) installed and a [Discord Develop
 - -random board (all/thematic (defaults to regular))
 - -spirit (front/back) [keywords]
 - -adversary (adversary name) \
-- -adversaryRules (leadingAdversary leadingAdversaryLevel supportingAdversary supportingAdversaryLevel) \
+- -adversaryrules (leadingAdversary leadingAdversaryLevel supportingAdversary supportingAdversaryLevel) \
 - -aspect (aspect name) [number of card (i.e. Locus part 1/2)]
 - -aspects (spirit name)
 - -healing [keyword]

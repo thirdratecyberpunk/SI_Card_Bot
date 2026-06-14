@@ -16,7 +16,7 @@ var help =
 	\n -fear [fear name] \
 	\n -faqs (search words) \
 	\n -adversary (adversary name) \
-	\n -adversaryRules (leadingAdversary leadingAdversaryLevel supportingAdversary supportingAdversaryLevel) \
+	\n -adversaryrules (leadingAdversary leadingAdversaryLevel supportingAdversary supportingAdversaryLevel) \
 	\n -random spirit (max complexity (low/moderate/high/vhc)) \
 	\n -random adversary (min difficulty) (max difficulty) \
 	\n -random double (min difficulty) (max difficulty) \
