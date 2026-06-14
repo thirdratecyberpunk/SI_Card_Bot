@@ -344,7 +344,7 @@ var france = {
   lossCondition: {
     name: "Sprawling Plantations",
     effect:
-      "Before Setup, return all but 7 :InvaderTown: per player to the box. Invaders win if you ever cannot place a :InvaderTown:. If playing doubles: increase the pool of available Town by 1 per player for each level of the other Adversary being played.",
+      "Before Setup, return all but 7 :InvaderTown: per player to the box. Invaders win if you ever cannot place a :InvaderTown:.",
   },
   // TODO: need to handle stage 3 escalation effects
   escalation: {
@@ -384,6 +384,8 @@ var france = {
         "After resolving an Explore Card, on each board add 1 :InvaderExplorer: to a land without any. Fear Card effects never remove :InvaderExplorer:. If one would, you may instead Push that :InvaderExplorer:.",
     },
   },
+  doublesNotes:
+    "Increase the pool of available :InvaderTown: by 1 per player for each level of the other Adversary being played.",
 };
 
 var habsburg = {
@@ -648,7 +650,7 @@ var scotland = {
     name: "Trade Hub",
     // TODO: find a more elegant way of mentioning doubles exceptions
     effect:
-      "If the number of Coastal lands with :InvaderCity: is ever greater than (2 x # of boards), the Invaders win. If the other Adversary's Setup instructions would add :InvaderCity: to a Coastal land other than land #2, instead add the :InvaderCity: to an adjacent Inland land.",
+      "If the number of Coastal lands with :InvaderCity: is ever greater than (2 x # of boards), the Invaders win.",
   },
   escalation: {
     name: "Ports Sprawl Outward",
@@ -687,6 +689,8 @@ var scotland = {
         "After the Ravage step, add 1 :InvaderTown: to each Inland land that matches a Ravage card and is within 1 Range of :InvaderTown:/:InvaderCity:.",
     },
   },
+  doublesNotes:
+    "If the other Adversary's Setup instructions would add :InvaderCity: to a Coastal land other than land #2, instead add the :InvaderCity: to an adjacent Inland land.",
 };
 
 var sweden = {

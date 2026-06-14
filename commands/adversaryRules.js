@@ -106,6 +106,22 @@ module.exports = {
       if (suppLoss) lines.push(`- **${suppLoss.name}** — ${suppLoss.effect}`);
     }
 
+    // if it's a doubles and either of the adversaries has any exceptions during doubles
+    if (
+      supportingAdversary &&
+      (leadingAdversary.doublesNotes || supportingAdversary.doublesNotes)
+    ) {
+      lines.push("### Doubles modifications");
+      if (leadingAdversary.doublesNotes)
+        lines.push(
+          `- **${leadingAdversary.name}** — ${leadingAdversary.doublesNotes}`,
+        );
+      if (supportingAdversary && supportingAdversary.doublesNotes)
+        lines.push(
+          `- **${supportingAdversary.name}** — ${supportingAdversary.doublesNotes}`,
+        );
+    }
+
     if (leadRules.length || suppRules.length) {
       lines.push("### Rules");
       for (const r of leadRules) {
