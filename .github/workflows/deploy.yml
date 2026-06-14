@@ -73,6 +73,15 @@ jobs:
 
           cd ~/SI_Card_Bot
 
+          # Ensure .env exists
+          sudo touch .env
+
+          # Remove any existing IMAGE_URI line
+          sudo sed -i '/^IMAGE_URI=/d' .env
+
+          # Append the new IMAGE_URI
+          echo "IMAGE_URI=$IMAGE_URI" | sudo tee -a .env
+
           ACCOUNT_ID=$(echo "$IMAGE_URI" | cut -d'.' -f1)
           REGION="eu-west-2"
           REGISTRY="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
@@ -83,8 +92,8 @@ jobs:
             | sudo docker login --username AWS --password-stdin "$REGISTRY"
 
           echo "Pulling image..."
-          sudo IMAGE_URI="$IMAGE_URI" docker compose pull si-card-bot
+          sudo docker compose pull si-card-bot
 
           echo "Starting containers..."
-          sudo IMAGE_URI="$IMAGE_URI" docker compose up -d --remove-orphans
+          sudo docker compose up -d --remove-orphans
           EOF
