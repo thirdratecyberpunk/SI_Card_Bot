@@ -957,6 +957,24 @@ function computeInvaderDeck(
   return deck;
 }
 
+/**
+ * Extract rules for an adversary up to a given difficulty level.
+ * Returns array of { index, name, effect } sorted by index.
+ */
+function getRulesForAdversary(adversary, maxLevel) {
+  if (!adversary || !adversary.rules) return [];
+
+  return Object.keys(adversary.rules)
+    .map(Number)
+    .filter((i) => i <= maxLevel)
+    .sort((a, b) => a - b)
+    .map((i) => ({
+      index: i,
+      name: adversary.rules[i].name,
+      effect: adversary.rules[i].effect,
+    }));
+}
+
 // Export registry and helpers
 module.exports = {
   ad,
@@ -965,4 +983,5 @@ module.exports = {
   parseSetupArgs,
   computeFearDeck,
   computeInvaderDeck,
+  getRulesForAdversary,
 };

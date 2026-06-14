@@ -8,7 +8,9 @@ const {
   parseSetupArgs,
   computeInvaderDeck,
   computeFearDeck,
+  getRulesForAdversary,
 } = require("./AdversaryNames.js");
+const { combineDifficulty } = require("../utils/difficulty.js");
 
 module.exports = {
   name: "adversaryrules",
@@ -16,7 +18,6 @@ module.exports = {
   public: true,
 
   async execute(msg, args) {
-    // Normalize args
     let parts = [];
     if (!args) args = [];
     if (typeof args === "string") {
@@ -25,12 +26,10 @@ module.exports = {
       parts = args.slice();
     }
 
-    // Ensure registry exists
     if (!ad) {
       return msg.reply("Adversary registry not available.");
     }
 
-    // Parse adversary setup using the shared helper
     let leadingAdversary, leadingLevel, supportingAdversary, supportingLevel;
     try {
       const parsed = parseSetupArgs(parts);
@@ -42,28 +41,6 @@ module.exports = {
       return msg.reply(err.message || String(err));
     }
 
-    // Reject 3‑token input (missing supporting difficulty)
-    if (parts.length === 3) {
-      return msg.reply(
-        "If you specify a supporting adversary you must also provide its difficulty (e.g. `habsburg_mining 4 scotland 2`).",
-      );
-    }
-
-    // Helper: extract rules up to a given difficulty level
-    const getRulesFor = (adv, maxLevel) => {
-      if (!adv.rules) return [];
-      return Object.keys(adv.rules)
-        .map(Number)
-        .filter((i) => i <= maxLevel)
-        .sort((a, b) => a - b)
-        .map((i) => ({
-          index: i,
-          name: adv.rules[i].name,
-          effect: adv.rules[i].effect,
-        }));
-    };
-
-    // Compute fear deck using the shared helper
     const fearDeck = computeFearDeck(
       leadingAdversary,
       leadingLevel,
@@ -71,7 +48,6 @@ module.exports = {
       supportingLevel,
     );
 
-    // Compute invader deck using the shared helper
     const invaderDeck = computeInvaderDeck(
       leadingAdversary,
       leadingLevel,
@@ -79,40 +55,41 @@ module.exports = {
       supportingLevel,
     );
 
-    // Combined difficulty (simple sum — matches your existing logic)
-    // TODO: fix this returning the level rather than the difficulty
-    const combinedDifficulty = leadingLevel + (supportingLevel || 0);
+    const leadingDifficulty = leadingAdversary.difficulty[leadingLevel];
+    const supportingDifficulty = supportingAdversary
+      ? supportingAdversary.difficulty[supportingLevel]
+      : 0;
 
-    // Extract escalation + loss conditions
+    const combinedDifficulty = combineDifficulty(
+      leadingDifficulty,
+      supportingDifficulty,
+    );
+
     const leadEsc = leadingAdversary.escalation;
     const suppEsc = supportingAdversary?.escalation ?? null;
 
     const leadLoss = leadingAdversary.lossCondition;
     const suppLoss = supportingAdversary?.lossCondition ?? null;
 
-    const leadRules = getRulesFor(leadingAdversary, leadingLevel);
+    const leadRules = getRulesForAdversary(leadingAdversary, leadingLevel);
     const suppRules = supportingAdversary
-      ? getRulesFor(supportingAdversary, supportingLevel)
+      ? getRulesForAdversary(supportingAdversary, supportingLevel)
       : [];
 
-    // Build Markdown output
     const lines = [];
 
+    // TODO: move the name calculation to handler within adversary file, feels like this might be reusable
     lines.push(
-      `## ${leadingAdversary.name}${supportingAdversary ? " + " + supportingAdversary.name : ""}`,
+      `## ${leadingAdversary.name} ${leadingLevel} ${supportingAdversary ? " + " + supportingAdversary.name : ""} ${supportingAdversary ? " " + supportingLevel : ""} ${leadingAdversary.emote} ${supportingAdversary ? supportingAdversary.emote : ""}`,
     );
     lines.push(`**Difficulty:** ${combinedDifficulty}`);
-    lines.push("");
 
-    // Invader Deck
     lines.push("### Invader Deck");
     lines.push(invaderDeck.formattedDeck());
 
-    // Fear Deck
     lines.push("### Fear Deck");
     lines.push(`(${fearDeck[0]}/${fearDeck[1]}/${fearDeck[2]})`);
 
-    // Escalations
     lines.push("### Escalations");
     lines.push(
       `- **Leading (Stage II):** **${leadEsc.name}** — ${leadEsc.effect}`,
@@ -123,14 +100,12 @@ module.exports = {
       );
     }
 
-    // Loss Conditions
     if (leadLoss || suppLoss) {
       lines.push("### Loss Conditions");
       if (leadLoss) lines.push(`- **${leadLoss.name}** — ${leadLoss.effect}`);
       if (suppLoss) lines.push(`- **${suppLoss.name}** — ${suppLoss.effect}`);
     }
 
-    // Rules
     if (leadRules.length || suppRules.length) {
       lines.push("### Rules");
       for (const r of leadRules) {
