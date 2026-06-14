@@ -11,6 +11,9 @@ const {
   getRulesForAdversary,
 } = require("./AdversaryNames.js");
 const { combineDifficulty } = require("../utils/difficulty.js");
+const {
+  renderAdversaryCard,
+} = require("../renderers/adversaryCardRenderer.js");
 
 module.exports = {
   name: "adversaryrules",
@@ -26,6 +29,11 @@ module.exports = {
     } else if (Array.isArray(args)) {
       parts = args.slice();
     }
+
+    // Remove md/markdown before parsing adversaries
+    parts = parts.filter(
+      (a) => a.toLowerCase() !== "md" && a.toLowerCase() !== "markdown",
+    );
 
     if (!ad) {
       return msg.reply("Adversary registry not available.");
@@ -152,30 +160,34 @@ module.exports = {
 
     const output = lines.join("\n");
 
-    // If short enough, send normally
-    if (output.length <= 1800) {
-      return msg.reply(output);
+    // Always generate PNG using your renderer
+    try {
+      const pngBuffer = await renderAdversaryCard({
+        leadingAdversary,
+        leadingLevel,
+        supportingAdversary,
+        supportingLevel,
+        combinedDifficulty,
+        fearDeck,
+        invaderDeck,
+        leadEsc,
+        suppEsc,
+        leadLoss,
+        suppLoss,
+        leadRules,
+        suppRules,
+        outputText: output,
+      });
+
+      return msg.reply({
+        files: [{ attachment: pngBuffer, name: "adversary.png" }],
+      });
+    } catch (err) {
+      console.error("PNG render failed:", err);
+
+      return msg.reply(
+        "Image rendering failed — something went wrong while generating the adversary card.",
+      );
     }
-
-    // Otherwise send as markdown file
-    const filename =
-      `${leadingAdversary.title}_${leadingLevel}` +
-      (supportingAdversary
-        ? `_${supportingAdversary.title}_${supportingLevel}`
-        : "") +
-      `.md`;
-
-    const buffer = Buffer.from(output, "utf-8");
-
-    return msg.reply({
-      content:
-        `## ${leadingAdversary.name} ${leadingLevel}` +
-        (supportingAdversary
-          ? ` + ${supportingAdversary.name} ${supportingLevel}`
-          : "") +
-        ` ${leadingAdversary.emote}` +
-        (supportingAdversary ? ` ${supportingAdversary.emote}` : ""),
-      files: [{ attachment: buffer, name: filename }],
-    });
   },
 };
