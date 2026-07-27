@@ -89,7 +89,7 @@ Ceaseless Mining: Lands with 3 or more Invaders are Mining lands. In Mining land
     2: {
       name: "Miners Come From Far and Wide",
       effect:
-        "Setup: Add 1 :InvaderExplorer: in each land with no :Dahan:. Add 1 :TokenDisease: and 1 City in the highest-numbered land with a :InvaderTown: Setup symbol.",
+        "Setup: Add 1 :InvaderExplorer: in each land with no :Dahan:. Add 1 :TokenDisease: and 1 :InvaderCity: in the highest-numbered land with a :InvaderTown: Setup symbol.",
     },
     3: {
       name: "Mining Boom (I)",
@@ -395,7 +395,8 @@ var france = {
 var habsburg = {
   title: "habsburg_livestock",
   name: "The Habsburg Monarchy",
-  flagImage: "images/flags/Habsburg_Monarchy_(Livestock_Colony)_WrinkledFlag.png",
+  flagImage:
+    "images/flags/Habsburg_Monarchy_(Livestock_Colony)_WrinkledFlag.png",
   emote: "<:FlagHabsburg:852366013638639636>",
   difficulty: [2, 3, 5, 6, 8, 9, 10],
   panel: "https://imgur.com/GtptfDJ",

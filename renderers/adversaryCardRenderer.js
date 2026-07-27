@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs");
 const { createCanvas, registerFont, loadImage } = require("canvas");
 
 registerFont(
@@ -31,7 +32,96 @@ async function loadFlagImage(flagImagePath) {
   }
 }
 
+// --- ICON TOKENS: ":InvaderCity:"-style tokens in rules text render as inline icons ---
+const ICONS_DIR = path.join(__dirname, "..", "images", "icons");
+const ICON_SIZE = 26;
+const ICON_GAP = 4;
+const ICON_TOKEN_PREFIXES = ["invader", "token", "speed"];
+
+// "36px-Fasticon.png" -> "fast", "25px-Isolateicon.png" -> "isolate", "City.svg" -> "city"
+function normalizeIconKey(fileName) {
+  const base = fileName.replace(/\.[^.]+$/, "");
+  const withoutSizePrefix = base.replace(/^\d+px-/i, "");
+  const withoutIconSuffix = withoutSizePrefix.replace(/icon$/i, "");
+  return (withoutIconSuffix || withoutSizePrefix).toLowerCase();
+}
+
+function buildIconLookup() {
+  const lookup = {};
+  let files = [];
+  try {
+    files = fs.readdirSync(ICONS_DIR);
+  } catch (err) {
+    console.error(`Failed to read icons directory: ${ICONS_DIR}`, err);
+  }
+  for (const file of files) {
+    lookup[normalizeIconKey(file)] = path.join(ICONS_DIR, file);
+  }
+  return lookup;
+}
+
+const ICON_LOOKUP = buildIconLookup();
+
+// Resolves a ":TokenName:" reference (e.g. "InvaderCity") to an icon file path,
+// stripping common game-text prefixes ("Invader"/"Token"/"Speed") when the bare
+// name doesn't match directly. Returns null when there's no icon for it yet.
+function resolveIconPath(tokenName) {
+  const key = tokenName.toLowerCase();
+  if (ICON_LOOKUP[key]) return ICON_LOOKUP[key];
+  for (const prefix of ICON_TOKEN_PREFIXES) {
+    if (key.startsWith(prefix) && key.length > prefix.length) {
+      const stripped = key.slice(prefix.length);
+      if (ICON_LOOKUP[stripped]) return ICON_LOOKUP[stripped];
+    }
+  }
+  return null;
+}
+
+const iconImageCache = new Map();
+
+async function preloadIcons(filePaths) {
+  await Promise.all(
+    filePaths.map(async (filePath) => {
+      if (iconImageCache.has(filePath)) return;
+      try {
+        iconImageCache.set(filePath, await loadImage(filePath));
+      } catch (err) {
+        console.error(`Failed to load icon image: ${filePath}`, err);
+      }
+    }),
+  );
+}
+
+/**
+ * Splits a chunk of text into alternating text/icon runs based on any
+ * ":TokenName:" references that resolve to a known icon. Tokens with no
+ * matching icon are left as literal text.
+ */
+function extractIconRuns(str) {
+  const runs = [];
+  const re = /:([A-Za-z]+):/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = re.exec(str)) !== null) {
+    const iconFile = resolveIconPath(match[1]);
+    if (iconFile) {
+      if (match.index > lastIndex) {
+        runs.push({ type: "text", str: str.slice(lastIndex, match.index) });
+      }
+      runs.push({ type: "icon", file: iconFile, raw: match[0] });
+      lastIndex = re.lastIndex;
+    }
+  }
+  if (lastIndex < str.length) {
+    runs.push({ type: "text", str: str.slice(lastIndex) });
+  }
+  return runs;
+}
+
 // Reem Kufi has no italic style, so italics are faked with a horizontal shear.
+// Both text and icons shear around the line's baseline y so a mixed run of
+// text + icons stays visually consistent instead of stair-stepping.
 const ITALIC_SLANT = -0.22;
 function fillItalicText(ctx, text, x, y) {
   ctx.save();
@@ -40,12 +130,58 @@ function fillItalicText(ctx, text, x, y) {
   ctx.restore();
 }
 
+function drawIconSlanted(ctx, img, x, iconTopY, w, h, baselineY) {
+  ctx.save();
+  ctx.transform(1, 0, ITALIC_SLANT, 1, 0, 0);
+  ctx.drawImage(img, x - ITALIC_SLANT * baselineY, iconTopY, w, h);
+  ctx.restore();
+}
+
+function drawTextRun(ctx, str, x, y, italic) {
+  if (!str) return x;
+  if (italic) {
+    fillItalicText(ctx, str, x, y);
+  } else {
+    ctx.fillText(str, x, y);
+  }
+  return x + ctx.measureText(str).width;
+}
+
+// Draws a run of same-styled text, substituting any ":TokenName:" reference
+// with its icon inline, scaled to the source image's own aspect ratio.
+// Icons are slanted the same as the surrounding text when inside a bracket.
+function drawChunkWithIcons(ctx, chunk, x, y, italic) {
+  let cursorX = x;
+  for (const run of extractIconRuns(chunk)) {
+    if (run.type === "icon") {
+      const img = iconImageCache.get(run.file);
+      if (img) {
+        const h = ICON_SIZE;
+        const w = img.height ? h * (img.width / img.height) : h;
+        const iconY = y - ICON_SIZE * 0.78;
+        if (italic) {
+          drawIconSlanted(ctx, img, cursorX, iconY, w, h, y);
+        } else {
+          ctx.drawImage(img, cursorX, iconY, w, h);
+        }
+        cursorX += w + ICON_GAP;
+      } else {
+        cursorX = drawTextRun(ctx, run.raw, cursorX, y, italic);
+      }
+    } else {
+      cursorX = drawTextRun(ctx, run.str, cursorX, y, italic);
+    }
+  }
+  return cursorX;
+}
+
 /**
- * Draws text at (x, y), italicising any parenthesised "(...)" spans.
+ * Draws text at (x, y), italicising any parenthesised "(...)" spans and
+ * replacing any ":TokenName:" reference with its icon.
  * startInParen lets a bracketed span continue across a wrapped line break.
  * Returns whether the line ended mid-bracket, for the next line to pick up.
  */
-function drawParenAwareText(ctx, text, x, y, startInParen) {
+function drawRichLine(ctx, text, x, y, startInParen) {
   let cursorX = x;
   let inParen = startInParen;
   let i = 0;
@@ -54,10 +190,9 @@ function drawParenAwareText(ctx, text, x, y, startInParen) {
     if (!inParen) {
       const idx = text.indexOf("(", i);
       const end = idx === -1 ? text.length : idx;
-      const segment = text.slice(i, end);
-      if (segment) {
-        ctx.fillText(segment, cursorX, y);
-        cursorX += ctx.measureText(segment).width;
+      const chunk = text.slice(i, end);
+      if (chunk) {
+        cursorX = drawChunkWithIcons(ctx, chunk, cursorX, y, false);
       }
       if (idx === -1) break;
       i = idx;
@@ -65,10 +200,9 @@ function drawParenAwareText(ctx, text, x, y, startInParen) {
     } else {
       const idx = text.indexOf(")", i);
       const end = idx === -1 ? text.length : idx + 1;
-      const segment = text.slice(i, end);
-      if (segment) {
-        fillItalicText(ctx, segment, cursorX, y);
-        cursorX += ctx.measureText(segment).width;
+      const chunk = text.slice(i, end);
+      if (chunk) {
+        cursorX = drawChunkWithIcons(ctx, chunk, cursorX, y, true);
       }
       if (idx === -1) {
         i = text.length;
@@ -226,6 +360,22 @@ async function renderAdversaryCard(data) {
   // --- RULES HEIGHT ---
   const rulesHeight = 80 + wrappedRules.length * 30;
 
+  // --- ICONS: preload any referenced by the loss/escalation/rules text ---
+  const bodyLines = [
+    ...leadLossWrapped,
+    ...suppLossWrapped,
+    ...leadEscWrapped,
+    ...suppEscWrapped,
+    ...wrappedRules,
+  ];
+  const neededIconFiles = new Set();
+  for (const line of bodyLines) {
+    for (const run of extractIconRuns(line)) {
+      if (run.type === "icon") neededIconFiles.add(run.file);
+    }
+  }
+  await preloadIcons([...neededIconFiles]);
+
   // --- STACKING ORDER ---
   const lossEscHeight = Math.max(lossHeight, escHeight);
   const summaryHeight = 40;
@@ -357,7 +507,7 @@ async function renderAdversaryCard(data) {
   let lossParenState = false;
 
   leadLossWrapped.forEach((line, i) => {
-    lossParenState = drawParenAwareText(
+    lossParenState = drawRichLine(
       ctx,
       line,
       padding,
@@ -370,7 +520,7 @@ async function renderAdversaryCard(data) {
   lossParenState = false;
 
   suppLossWrapped.forEach((line, i) => {
-    lossParenState = drawParenAwareText(
+    lossParenState = drawRichLine(
       ctx,
       line,
       padding,
@@ -398,7 +548,7 @@ async function renderAdversaryCard(data) {
   let escParenState = false;
 
   leadEscWrapped.forEach((line, i) => {
-    escParenState = drawParenAwareText(
+    escParenState = drawRichLine(
       ctx,
       line,
       lossBoxWidth + padding,
@@ -411,7 +561,7 @@ async function renderAdversaryCard(data) {
   escParenState = false;
 
   suppEscWrapped.forEach((line, i) => {
-    escParenState = drawParenAwareText(
+    escParenState = drawRichLine(
       ctx,
       line,
       lossBoxWidth + padding,
@@ -439,7 +589,7 @@ async function renderAdversaryCard(data) {
   wrappedRuleGroups.forEach((group) => {
     let ruleParenState = false;
     group.forEach((line) => {
-      ruleParenState = drawParenAwareText(
+      ruleParenState = drawRichLine(
         ctx,
         line,
         padding,
