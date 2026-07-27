@@ -1,4 +1,17 @@
-const { createCanvas } = require("canvas");
+const path = require("path");
+const { createCanvas, registerFont } = require("canvas");
+
+registerFont(
+  path.join(__dirname, "..", "fonts", "Oswald-VariableFont_wght.ttf"),
+  { family: "Oswald Light", weight: "300" },
+);
+registerFont(
+  path.join(__dirname, "..", "fonts", "ReemKufi-VariableFont_wght.ttf"),
+  { family: "Reem Kufi" },
+);
+
+const TITLE_FONT_FAMILY = "'Oswald Light'";
+const BODY_FONT_FAMILY = "'Reem Kufi'";
 
 /**
  * Renders a PNG adversary card in a wiki‑style layout.
@@ -43,7 +56,7 @@ async function renderAdversaryCard(data) {
   // --- TEXT MEASUREMENT SETUP ---
   const temp = createCanvas(10, 10);
   const measure = temp.getContext("2d");
-  measure.font = "26px 'Noto Sans'";
+  measure.font = `26px ${BODY_FONT_FAMILY}`;
 
   function wrap(text, maxWidth) {
     const words = text.split(" ");
@@ -81,7 +94,7 @@ async function renderAdversaryCard(data) {
 
   const fearSummary = `${fearDeck[0]} / ${fearDeck[1]} / ${fearDeck[2]}`;
   const invaderSummary = invaderDeck.formattedDeck();
-  const summaryFont = "28px 'Noto Sans'";
+  const summaryFont = `28px ${BODY_FONT_FAMILY}`;
 
   // --- LOSS CONDITIONS (dynamic height) ---
   const lossBoxWidth = width * 0.45;
@@ -162,10 +175,10 @@ async function renderAdversaryCard(data) {
 
   const difficultyText = `Difficulty ${combinedDifficulty}`;
 
-  ctx.font = "bold 40px 'Noto Sans'";
+  ctx.font = `40px ${TITLE_FONT_FAMILY}`;
   const titleWidth = ctx.measureText(headerTitle).width;
 
-  ctx.font = "bold 32px 'Noto Sans'";
+  ctx.font = `bold 32px ${BODY_FONT_FAMILY}`;
   const difficultyWidth = ctx.measureText(difficultyText).width;
 
   const leftX = padding;
@@ -178,11 +191,11 @@ async function renderAdversaryCard(data) {
   const difficultyYSameLine = 70;
   const difficultyYSecondLine = 105;
 
-  ctx.font = "bold 40px 'Noto Sans'";
+  ctx.font = `40px ${TITLE_FONT_FAMILY}`;
   ctx.fillStyle = "#000";
   ctx.fillText(headerTitle, leftX, titleY);
 
-  ctx.font = "bold 32px 'Noto Sans'";
+  ctx.font = `bold 32px ${BODY_FONT_FAMILY}`;
 
   const titleEndX = leftX + titleWidth;
   const difficultyStartX = rightX;
@@ -196,13 +209,13 @@ async function renderAdversaryCard(data) {
   }
 
   // --- FEAR (left) + INVADER (right) on same line, BELOW header box ---
-  ctx.font = "bold 28px 'Noto Sans'";
+  ctx.font = `bold 28px ${BODY_FONT_FAMILY}`;
   ctx.fillText("Fear Deck:", padding, summaryY);
 
   ctx.font = summaryFont;
   ctx.fillText(fearSummary, padding + 180, summaryY);
 
-  ctx.font = "bold 28px 'Noto Sans'";
+  ctx.font = `bold 28px ${BODY_FONT_FAMILY}`;
   const invaderLabel = "Invader Deck:";
   const invaderLabelWidth = ctx.measureText(invaderLabel).width;
 
@@ -229,11 +242,11 @@ async function renderAdversaryCard(data) {
   ctx.lineWidth = 6;
   ctx.strokeRect(0, lossY, lossBoxWidth, lossHeight);
 
-  ctx.font = "bold italic 28px 'Noto Sans'";
+  ctx.font = `bold italic 28px ${BODY_FONT_FAMILY}`;
   ctx.fillStyle = "#000";
   ctx.fillText("Loss Conditions", padding, lossY + 40);
 
-  ctx.font = "24px 'Noto Sans'";
+  ctx.font = `24px ${BODY_FONT_FAMILY}`;
   let lossOffset = lossY + 80;
 
   leadLossWrapped.forEach((line, i) => {
@@ -256,11 +269,11 @@ async function renderAdversaryCard(data) {
   ctx.lineWidth = 6;
   ctx.strokeRect(lossBoxWidth, escY, escBoxWidth, escHeight);
 
-  ctx.font = "bold italic 28px 'Noto Sans'";
+  ctx.font = `bold italic 28px ${BODY_FONT_FAMILY}`;
   ctx.fillStyle = "#000";
   ctx.fillText("Escalations", lossBoxWidth + padding, escY + 40);
 
-  ctx.font = "24px 'Noto Sans'";
+  ctx.font = `24px ${BODY_FONT_FAMILY}`;
   let escOffset = escY + 80;
 
   leadEscWrapped.forEach((line, i) => {
@@ -283,11 +296,11 @@ async function renderAdversaryCard(data) {
   ctx.lineWidth = 6;
   ctx.strokeRect(0, rulesY, width, rulesHeight);
 
-  ctx.font = "bold italic 28px 'Noto Sans'";
+  ctx.font = `bold italic 28px ${BODY_FONT_FAMILY}`;
   ctx.fillStyle = "#000";
   ctx.fillText("Rules", padding, rulesY + 40);
 
-  ctx.font = "24px 'Noto Sans'";
+  ctx.font = `24px ${BODY_FONT_FAMILY}`;
   wrappedRules.forEach((line, i) => {
     ctx.fillText(line, padding, rulesY + 80 + i * 30);
   });
