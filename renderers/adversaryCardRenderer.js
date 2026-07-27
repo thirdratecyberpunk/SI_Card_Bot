@@ -130,6 +130,29 @@ function fillItalicText(ctx, text, x, y) {
   ctx.restore();
 }
 
+// Reem Kufi's registered face is fairly thick even at "regular" weight, so the
+// CSS "bold" keyword alone doesn't read as clearly bold. Stroke-then-fill gives
+// section/box titles a reliably heavier weight regardless of font quirks.
+function fillBoldText(ctx, text, x, y) {
+  ctx.save();
+  ctx.lineWidth = 1.4;
+  ctx.strokeStyle = ctx.fillStyle;
+  ctx.strokeText(text, x, y);
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+function fillBoldItalicText(ctx, text, x, y) {
+  ctx.save();
+  ctx.transform(1, 0, ITALIC_SLANT, 1, 0, 0);
+  const shearedX = x - ITALIC_SLANT * y;
+  ctx.lineWidth = 1.4;
+  ctx.strokeStyle = ctx.fillStyle;
+  ctx.strokeText(text, shearedX, y);
+  ctx.fillText(text, shearedX, y);
+  ctx.restore();
+}
+
 function drawIconSlanted(ctx, img, x, iconTopY, w, h, baselineY) {
   ctx.save();
   ctx.transform(1, 0, ITALIC_SLANT, 1, 0, 0);
@@ -216,6 +239,41 @@ function drawRichLine(ctx, text, x, y, startInParen) {
   return inParen;
 }
 
+// Draws one line of a "{Name}: effect" / "{Name} — effect" group, bolding the
+// name prefix on the first line only. Returns the paren state for the next line.
+function drawNamedEffectLine(ctx, line, x, y, boldPrefixLength, isFirstLine, parenState) {
+  if (isFirstLine && boldPrefixLength > 0) {
+    const boldLen = Math.min(boldPrefixLength, line.length);
+    const namePart = line.slice(0, boldLen);
+    const restPart = line.slice(boldLen);
+    fillBoldText(ctx, namePart, x, y);
+    const namePartWidth = ctx.measureText(namePart).width;
+    return drawRichLine(ctx, restPart, x + namePartWidth, y, false);
+  }
+  return drawRichLine(ctx, line, x, y, parenState);
+}
+
+// Draws the " — {Name}: effect" remainder of an escalation's first line,
+// bolding "{Name}:" as well (the "Stage II"/"Stage III" part is drawn by the
+// caller before this). Falls back to plain rendering if the text doesn't
+// start with the expected " — {escName}:" shape (e.g. an unexpected wrap).
+function drawEscalationNameEffect(ctx, text, x, y, escName) {
+  const combinedPrefix = ` — ${escName}:`;
+  if (text.startsWith(combinedPrefix)) {
+    let cursorX = x;
+    const dash = " — ";
+    ctx.fillText(dash, cursorX, y);
+    cursorX += ctx.measureText(dash).width;
+
+    const namePart = `${escName}:`;
+    fillBoldText(ctx, namePart, cursorX, y);
+    cursorX += ctx.measureText(namePart).width;
+
+    return drawRichLine(ctx, text.slice(combinedPrefix.length), cursorX, y, false);
+  }
+  return drawRichLine(ctx, text, x, y, false);
+}
+
 /**
  * Renders a PNG adversary card in a wiki‑style layout.
  * Includes header, fear deck summary, invader deck summary,
@@ -298,16 +356,39 @@ async function renderAdversaryCard(data) {
     return lines;
   }
 
-  // --- BUILD RULES TEXT ---
-  const rulesText = [
-    ...leadRules.map((r) => `• ${r.name}: ${r.effect}`),
-    ...suppRules.map((r) => `• ${r.name}: ${r.effect}`),
+  // Wraps "{namePrefix}{effect}" and records how many characters of the
+  // first line are the name, so the renderer can draw just that part bold.
+  function wrapNamedEffect(namePrefix, effect, maxWidth) {
+    const lines = wrap(`${namePrefix}${effect}`, maxWidth);
+    return { lines, boldPrefixLength: namePrefix.length };
+  }
+
+  // --- BUILD RULES TEXT, GROUPED INTO PHASE SECTIONS ---
+  // A rule can belong to more than one phase (type is an array), in which
+  // case it's shown in full under each relevant section.
+  const RULE_SECTION_ORDER = [
+    { key: "setup", label: "Setup" },
+    { key: "ongoing", label: "Ongoing" },
+    { key: "explore", label: "Explore" },
+    { key: "build", label: "Build" },
+    { key: "ravage", label: "Ravage" },
   ];
 
-  const wrappedRuleGroups = rulesText.map((line) =>
-    wrap(line, width - padding * 2),
+  const allRules = [...leadRules, ...suppRules];
+
+  const ruleSections = RULE_SECTION_ORDER.map(({ key, label }) => {
+    const rulesForSection = allRules.filter((r) =>
+      (r.type && r.type.length ? r.type : ["ongoing"]).includes(key),
+    );
+    const wrappedGroups = rulesForSection.map((r) =>
+      wrapNamedEffect(`• ${r.name}: `, r.effect, width - padding * 2),
+    );
+    return { label, wrappedGroups };
+  }).filter((section) => section.wrappedGroups.length > 0);
+
+  const wrappedRules = ruleSections.flatMap((section) =>
+    section.wrappedGroups.flatMap((group) => group.lines),
   );
-  const wrappedRules = wrappedRuleGroups.flat();
 
   // --- HEADER HEIGHT ---
   const headerHeight = 120;
@@ -322,50 +403,71 @@ async function renderAdversaryCard(data) {
   // --- LOSS CONDITIONS (dynamic height) ---
   const lossBoxWidth = width * 0.45;
 
-  const leadLossWrapped = wrap(
-    `Leading: ${safeLeadLoss.name} — ${safeLeadLoss.effect}`,
+  const leadLossGroup = wrapNamedEffect(
+    `${safeLeadLoss.name} — `,
+    safeLeadLoss.effect,
     lossBoxWidth - padding * 2,
   );
 
-  let suppLossWrapped = [];
+  let suppLossGroup = null;
   if (safeSuppLoss) {
-    suppLossWrapped = wrap(
-      `Supporting: ${safeSuppLoss.name} — ${safeSuppLoss.effect}`,
+    suppLossGroup = wrapNamedEffect(
+      `${safeSuppLoss.name} — `,
+      safeSuppLoss.effect,
       lossBoxWidth - padding * 2,
     );
   }
 
-  const lossTextLines = leadLossWrapped.length + suppLossWrapped.length;
+  const lossTextLines =
+    leadLossGroup.lines.length + (suppLossGroup ? suppLossGroup.lines.length : 0);
   const lossHeight = 80 + lossTextLines * 30 + padding;
 
   // --- ESCALATIONS (dynamic height) ---
   const escBoxWidth = width * 0.55;
 
-  const leadEscWrapped = wrap(
-    `Stage II — ${safeLeadEsc.name}: ${safeLeadEsc.effect}`,
+  const leadEscGroup = wrapNamedEffect(
+    "Stage II",
+    ` — ${safeLeadEsc.name}: ${safeLeadEsc.effect}`,
     escBoxWidth - padding * 2,
   );
 
-  let suppEscWrapped = [];
+  let suppEscGroup = null;
   if (safeSuppEsc) {
-    suppEscWrapped = wrap(
-      `Stage III — ${safeSuppEsc.name}: ${safeSuppEsc.effect}`,
+    suppEscGroup = wrapNamedEffect(
+      "Stage III",
+      ` — ${safeSuppEsc.name}: ${safeSuppEsc.effect}`,
       escBoxWidth - padding * 2,
     );
   }
 
-  const escTextLines = leadEscWrapped.length + suppEscWrapped.length;
+  const escTextLines =
+    leadEscGroup.lines.length + (suppEscGroup ? suppEscGroup.lines.length : 0);
   const escHeight = 80 + escTextLines * 30 + padding;
 
   // --- RULES HEIGHT ---
-  const rulesHeight = 80 + wrappedRules.length * 30;
+  // Each section reserves space for its subheading, then one line per
+  // wrapped rule line, plus a gap (with a divider) between sections.
+  const RULE_SECTION_HEADER_HEIGHT = 34;
+  const RULE_SECTION_GAP = 36;
+
+  const rulesInnerHeight =
+    ruleSections.reduce((sum, section) => {
+      const lineCount = section.wrappedGroups.reduce(
+        (n, group) => n + group.lines.length,
+        0,
+      );
+      return sum + RULE_SECTION_HEADER_HEIGHT + lineCount * 30;
+    }, 0) +
+    RULE_SECTION_GAP * Math.max(ruleSections.length - 1, 0);
+
+  const rulesHeight = 80 + rulesInnerHeight;
 
   // --- ICONS: preload any referenced by the loss/escalation/rules text ---
   const bodyLines = [
-    ...leadLossWrapped,
-    ...suppLossWrapped,
-    ...leadEscWrapped,
-    ...suppEscWrapped,
+    ...leadLossGroup.lines,
+    ...(suppLossGroup ? suppLossGroup.lines : []),
+    ...leadEscGroup.lines,
+    ...(suppEscGroup ? suppEscGroup.lines : []),
     ...wrappedRules,
   ];
   const neededIconFiles = new Set();
@@ -374,6 +476,8 @@ async function renderAdversaryCard(data) {
       if (run.type === "icon") neededIconFiles.add(run.file);
     }
   }
+  const escalationIconFile = resolveIconPath("Escalation");
+  if (escalationIconFile) neededIconFiles.add(escalationIconFile);
   await preloadIcons([...neededIconFiles]);
 
   // --- STACKING ORDER ---
@@ -498,36 +602,42 @@ async function renderAdversaryCard(data) {
   ctx.lineWidth = BORDER_WIDTH;
   ctx.strokeRect(0, lossY, lossBoxWidth, lossEscHeight);
 
-  ctx.font = `bold 28px ${BODY_FONT_FAMILY}`;
+  ctx.font = `28px ${BODY_FONT_FAMILY}`;
   ctx.fillStyle = "#000";
-  fillItalicText(ctx, "Loss Conditions", padding, lossY + 40);
+  fillBoldItalicText(ctx, "Loss Conditions", padding, lossY + 40);
 
   ctx.font = `24px ${BODY_FONT_FAMILY}`;
   let lossOffset = lossY + 80;
   let lossParenState = false;
 
-  leadLossWrapped.forEach((line, i) => {
-    lossParenState = drawRichLine(
+  leadLossGroup.lines.forEach((line, i) => {
+    lossParenState = drawNamedEffectLine(
       ctx,
       line,
       padding,
       lossOffset + i * 30,
+      leadLossGroup.boldPrefixLength,
+      i === 0,
       lossParenState,
     );
   });
 
-  lossOffset += leadLossWrapped.length * 30 + 20;
-  lossParenState = false;
+  if (suppLossGroup) {
+    lossOffset += leadLossGroup.lines.length * 30 + 20;
+    lossParenState = false;
 
-  suppLossWrapped.forEach((line, i) => {
-    lossParenState = drawRichLine(
-      ctx,
-      line,
-      padding,
-      lossOffset + i * 30,
-      lossParenState,
-    );
-  });
+    suppLossGroup.lines.forEach((line, i) => {
+      lossParenState = drawNamedEffectLine(
+        ctx,
+        line,
+        padding,
+        lossOffset + i * 30,
+        suppLossGroup.boldPrefixLength,
+        i === 0,
+        lossParenState,
+      );
+    });
+  }
 
   // --- ESCALATIONS BOX ---
   const escY = lossY;
@@ -539,36 +649,95 @@ async function renderAdversaryCard(data) {
   ctx.lineWidth = BORDER_WIDTH;
   ctx.strokeRect(lossBoxWidth, escY, escBoxWidth, lossEscHeight);
 
-  ctx.font = `bold 28px ${BODY_FONT_FAMILY}`;
+  ctx.font = `28px ${BODY_FONT_FAMILY}`;
   ctx.fillStyle = "#000";
-  fillItalicText(ctx, "Escalations", lossBoxWidth + padding, escY + 40);
+  fillBoldItalicText(ctx, "Escalations", lossBoxWidth + padding, escY + 40);
 
   ctx.font = `24px ${BODY_FONT_FAMILY}`;
   let escOffset = escY + 80;
   let escParenState = false;
 
-  leadEscWrapped.forEach((line, i) => {
-    escParenState = drawRichLine(
-      ctx,
-      line,
-      lossBoxWidth + padding,
-      escOffset + i * 30,
-      escParenState,
-    );
+  const escalationIcon = escalationIconFile
+    ? iconImageCache.get(escalationIconFile)
+    : null;
+
+  leadEscGroup.lines.forEach((line, i) => {
+    const lineY = escOffset + i * 30;
+
+    if (i === 0) {
+      const boldLen = Math.min(leadEscGroup.boldPrefixLength, line.length);
+      const namePart = line.slice(0, boldLen);
+      const restPart = line.slice(boldLen);
+
+      let cursorX = lossBoxWidth + padding;
+      fillBoldText(ctx, namePart, cursorX, lineY);
+      cursorX += ctx.measureText(namePart).width;
+
+      if (escalationIcon) {
+        const iconH = ICON_SIZE;
+        const iconW = escalationIcon.height
+          ? iconH * (escalationIcon.width / escalationIcon.height)
+          : iconH;
+        cursorX += ICON_GAP;
+        ctx.drawImage(escalationIcon, cursorX, lineY - ICON_SIZE * 0.78, iconW, iconH);
+        cursorX += iconW + ICON_GAP;
+      }
+
+      escParenState = drawEscalationNameEffect(
+        ctx,
+        restPart,
+        cursorX,
+        lineY,
+        safeLeadEsc.name,
+      );
+    } else {
+      escParenState = drawNamedEffectLine(
+        ctx,
+        line,
+        lossBoxWidth + padding,
+        lineY,
+        leadEscGroup.boldPrefixLength,
+        false,
+        escParenState,
+      );
+    }
   });
 
-  escOffset += leadEscWrapped.length * 30 + 20;
-  escParenState = false;
+  if (suppEscGroup) {
+    escOffset += leadEscGroup.lines.length * 30 + 20;
+    escParenState = false;
 
-  suppEscWrapped.forEach((line, i) => {
-    escParenState = drawRichLine(
-      ctx,
-      line,
-      lossBoxWidth + padding,
-      escOffset + i * 30,
-      escParenState,
-    );
-  });
+    suppEscGroup.lines.forEach((line, i) => {
+      const lineY = escOffset + i * 30;
+
+      if (i === 0) {
+        const boldLen = Math.min(suppEscGroup.boldPrefixLength, line.length);
+        const namePart = line.slice(0, boldLen);
+        const restPart = line.slice(boldLen);
+
+        fillBoldText(ctx, namePart, lossBoxWidth + padding, lineY);
+        const cursorX = lossBoxWidth + padding + ctx.measureText(namePart).width;
+
+        escParenState = drawEscalationNameEffect(
+          ctx,
+          restPart,
+          cursorX,
+          lineY,
+          safeSuppEsc.name,
+        );
+      } else {
+        escParenState = drawNamedEffectLine(
+          ctx,
+          line,
+          lossBoxWidth + padding,
+          lineY,
+          suppEscGroup.boldPrefixLength,
+          false,
+          escParenState,
+        );
+      }
+    });
+  }
 
   // --- RULES SECTION ---
   const rulesY = lossY + lossEscHeight;
@@ -580,24 +749,46 @@ async function renderAdversaryCard(data) {
   ctx.lineWidth = BORDER_WIDTH;
   ctx.strokeRect(0, rulesY, width, rulesHeight);
 
-  ctx.font = `bold 28px ${BODY_FONT_FAMILY}`;
+  ctx.font = `28px ${BODY_FONT_FAMILY}`;
   ctx.fillStyle = "#000";
-  fillItalicText(ctx, "Rules", padding, rulesY + 40);
+  fillBoldItalicText(ctx, "Rules", padding, rulesY + 40);
 
-  ctx.font = `24px ${BODY_FONT_FAMILY}`;
-  let ruleLineIndex = 0;
-  wrappedRuleGroups.forEach((group) => {
-    let ruleParenState = false;
-    group.forEach((line) => {
-      ruleParenState = drawRichLine(
-        ctx,
-        line,
-        padding,
-        rulesY + 80 + ruleLineIndex * 30,
-        ruleParenState,
-      );
-      ruleLineIndex += 1;
+  let sectionY = rulesY + 80;
+  ruleSections.forEach((section, sectionIndex) => {
+    ctx.font = `26px ${BODY_FONT_FAMILY}`;
+    ctx.fillStyle = "#000";
+    fillBoldText(ctx, section.label, padding, sectionY);
+    sectionY += RULE_SECTION_HEADER_HEIGHT;
+
+    ctx.font = `24px ${BODY_FONT_FAMILY}`;
+    section.wrappedGroups.forEach((group) => {
+      let ruleParenState = false;
+      group.lines.forEach((line, lineIndex) => {
+        ruleParenState = drawNamedEffectLine(
+          ctx,
+          line,
+          padding,
+          sectionY,
+          group.boldPrefixLength,
+          lineIndex === 0,
+          ruleParenState,
+        );
+        sectionY += 30;
+      });
     });
+
+    if (sectionIndex < ruleSections.length - 1) {
+      // Bias the divider toward the top of the gap so there's clear padding
+      // between the line and the next section's caption below it.
+      const dividerY = sectionY + 10;
+      ctx.strokeStyle = BORDER_COLOR;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(padding, dividerY);
+      ctx.lineTo(width - padding, dividerY);
+      ctx.stroke();
+      sectionY += RULE_SECTION_GAP;
+    }
   });
 
   return canvas.toBuffer("image/png");
