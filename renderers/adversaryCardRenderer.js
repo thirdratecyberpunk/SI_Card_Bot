@@ -13,6 +13,19 @@ registerFont(
 const TITLE_FONT_FAMILY = "'Oswald Light'";
 const BODY_FONT_FAMILY = "'Reem Kufi'";
 
+const HEADER_FILL = "#e1dcbe";
+const BORDER_COLOR = "#917d64";
+const BORDER_WIDTH = 8;
+
+// Reem Kufi has no italic style, so italics are faked with a horizontal shear.
+const ITALIC_SLANT = -0.22;
+function fillItalicText(ctx, text, x, y) {
+  ctx.save();
+  ctx.transform(1, 0, ITALIC_SLANT, 1, 0, 0);
+  ctx.fillText(text, x - ITALIC_SLANT * y, y);
+  ctx.restore();
+}
+
 /**
  * Renders a PNG adversary card in a wiki‑style layout.
  * Includes header, fear deck summary, invader deck summary,
@@ -159,11 +172,11 @@ async function renderAdversaryCard(data) {
   ctx.fillRect(0, 0, width, totalHeight);
 
   // --- HEADER BOX ---
-  ctx.fillStyle = "rgb(225,220,190)";
+  ctx.fillStyle = HEADER_FILL;
   ctx.fillRect(0, 0, width, headerHeight);
 
-  ctx.strokeStyle = "black";
-  ctx.lineWidth = 6;
+  ctx.strokeStyle = BORDER_COLOR;
+  ctx.lineWidth = BORDER_WIDTH;
   ctx.strokeRect(0, 0, width, headerHeight);
 
   // --- HEADER TITLE + DIFFICULTY WITH OVERLAP CHECK ---
@@ -238,13 +251,13 @@ async function renderAdversaryCard(data) {
   ctx.fillStyle = "rgb(235,230,215)";
   ctx.fillRect(0, lossY, lossBoxWidth, lossHeight);
 
-  ctx.strokeStyle = "black";
-  ctx.lineWidth = 6;
+  ctx.strokeStyle = BORDER_COLOR;
+  ctx.lineWidth = BORDER_WIDTH;
   ctx.strokeRect(0, lossY, lossBoxWidth, lossHeight);
 
-  ctx.font = `bold italic 28px ${BODY_FONT_FAMILY}`;
+  ctx.font = `bold 28px ${BODY_FONT_FAMILY}`;
   ctx.fillStyle = "#000";
-  ctx.fillText("Loss Conditions", padding, lossY + 40);
+  fillItalicText(ctx, "Loss Conditions", padding, lossY + 40);
 
   ctx.font = `24px ${BODY_FONT_FAMILY}`;
   let lossOffset = lossY + 80;
@@ -265,13 +278,13 @@ async function renderAdversaryCard(data) {
   ctx.fillStyle = "rgb(235,230,215)";
   ctx.fillRect(lossBoxWidth, escY, escBoxWidth, escHeight);
 
-  ctx.strokeStyle = "black";
-  ctx.lineWidth = 6;
+  ctx.strokeStyle = BORDER_COLOR;
+  ctx.lineWidth = BORDER_WIDTH;
   ctx.strokeRect(lossBoxWidth, escY, escBoxWidth, escHeight);
 
-  ctx.font = `bold italic 28px ${BODY_FONT_FAMILY}`;
+  ctx.font = `bold 28px ${BODY_FONT_FAMILY}`;
   ctx.fillStyle = "#000";
-  ctx.fillText("Escalations", lossBoxWidth + padding, escY + 40);
+  fillItalicText(ctx, "Escalations", lossBoxWidth + padding, escY + 40);
 
   ctx.font = `24px ${BODY_FONT_FAMILY}`;
   let escOffset = escY + 80;
@@ -292,13 +305,13 @@ async function renderAdversaryCard(data) {
   ctx.fillStyle = "rgb(235,230,215)";
   ctx.fillRect(0, rulesY, width, rulesHeight);
 
-  ctx.strokeStyle = "black";
-  ctx.lineWidth = 6;
+  ctx.strokeStyle = BORDER_COLOR;
+  ctx.lineWidth = BORDER_WIDTH;
   ctx.strokeRect(0, rulesY, width, rulesHeight);
 
-  ctx.font = `bold italic 28px ${BODY_FONT_FAMILY}`;
+  ctx.font = `bold 28px ${BODY_FONT_FAMILY}`;
   ctx.fillStyle = "#000";
-  ctx.fillText("Rules", padding, rulesY + 40);
+  fillItalicText(ctx, "Rules", padding, rulesY + 40);
 
   ctx.font = `24px ${BODY_FONT_FAMILY}`;
   wrappedRules.forEach((line, i) => {
