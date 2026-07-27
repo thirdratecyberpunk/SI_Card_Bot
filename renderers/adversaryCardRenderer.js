@@ -298,14 +298,11 @@ async function renderAdversaryCard(data) {
   const width = 1600;
   const padding = 30;
 
+  // No loss condition at all (neither adversary has one) -> the whole box is omitted.
+  // An adversary that individually lacks one is simply left out, not shown as "None".
+  const hasLossConditions = Boolean(leadLoss) || Boolean(suppLoss);
+
   // --- NULL‑SAFE NORMALIZATION ---
-  const safeLeadLoss = leadLoss ?? {
-    name: "None",
-    effect: "This adversary has no special loss condition.",
-  };
-
-  const safeSuppLoss = suppLoss ?? null;
-
   const safeLeadEsc = leadEsc ?? {
     name: "None",
     effect: "This adversary has no escalation.",
@@ -396,30 +393,40 @@ async function renderAdversaryCard(data) {
   const invaderSummary = invaderDeck.formattedDeck();
   const summaryFont = `28px ${BODY_FONT_FAMILY}`;
 
-  // --- LOSS CONDITIONS (dynamic height) ---
+  // --- LOSS CONDITIONS (dynamic height, omitted entirely if neither adversary has one) ---
   const lossBoxWidth = width * 0.45;
 
-  const leadLossGroup = wrapNamedEffect(
-    `${safeLeadLoss.name} — `,
-    safeLeadLoss.effect,
-    lossBoxWidth - padding * 2,
-  );
-
+  let leadLossGroup = null;
   let suppLossGroup = null;
-  if (safeSuppLoss) {
-    suppLossGroup = wrapNamedEffect(
-      `${safeSuppLoss.name} — `,
-      safeSuppLoss.effect,
-      lossBoxWidth - padding * 2,
-    );
+  let lossHeight = 0;
+
+  if (hasLossConditions) {
+    if (leadLoss) {
+      leadLossGroup = wrapNamedEffect(
+        `${leadLoss.name} — `,
+        leadLoss.effect,
+        lossBoxWidth - padding * 2,
+      );
+    }
+
+    if (suppLoss) {
+      suppLossGroup = wrapNamedEffect(
+        `${suppLoss.name} — `,
+        suppLoss.effect,
+        lossBoxWidth - padding * 2,
+      );
+    }
+
+    const lossTextLines =
+      (leadLossGroup ? leadLossGroup.lines.length : 0) +
+      (suppLossGroup ? suppLossGroup.lines.length : 0);
+    lossHeight = 80 + lossTextLines * 30 + padding;
   }
 
-  const lossTextLines =
-    leadLossGroup.lines.length + (suppLossGroup ? suppLossGroup.lines.length : 0);
-  const lossHeight = 80 + lossTextLines * 30 + padding;
-
   // --- ESCALATIONS (dynamic height) ---
-  const escBoxWidth = width * 0.55;
+  // Escalations takes the full row width when there's no Loss Conditions box beside it.
+  const escBoxWidth = hasLossConditions ? width * 0.55 : width;
+  const escX = hasLossConditions ? lossBoxWidth : 0;
 
   const leadEscGroup = wrapNamedEffect(
     "Stage II",
@@ -456,11 +463,12 @@ async function renderAdversaryCard(data) {
     }, 0) +
     RULE_SECTION_GAP * Math.max(ruleSections.length - 1, 0);
 
-  const rulesHeight = 80 + rulesInnerHeight;
+  // No rules to show (e.g. noSetup hid everything) -> the whole box collapses away.
+  const rulesHeight = ruleSections.length > 0 ? 80 + rulesInnerHeight : 0;
 
   // --- ICONS: preload any referenced by the loss/escalation/rules text ---
   const bodyLines = [
-    ...leadLossGroup.lines,
+    ...(leadLossGroup ? leadLossGroup.lines : []),
     ...(suppLossGroup ? suppLossGroup.lines : []),
     ...leadEscGroup.lines,
     ...(suppEscGroup ? suppEscGroup.lines : []),
@@ -477,7 +485,7 @@ async function renderAdversaryCard(data) {
   await preloadIcons([...neededIconFiles]);
 
   // --- STACKING ORDER ---
-  const lossEscHeight = Math.max(lossHeight, escHeight);
+  const lossEscHeight = hasLossConditions ? Math.max(lossHeight, escHeight) : escHeight;
   const summaryHeight = 40;
 
   const totalHeight =
@@ -604,50 +612,42 @@ async function renderAdversaryCard(data) {
   ctx.font = summaryFont;
   ctx.fillText(fearSummary, fearLabelX + fearLabelWidth + 10, summaryY);
 
-  // --- LOSS CONDITIONS BOX ---
+  // --- LOSS CONDITIONS BOX (omitted entirely if neither adversary has one) ---
   const lossY = summaryY + summaryHeight;
 
-  ctx.fillStyle = "rgb(235,230,215)";
-  ctx.fillRect(0, lossY, lossBoxWidth, lossEscHeight);
+  if (hasLossConditions) {
+    ctx.fillStyle = "rgb(235,230,215)";
+    ctx.fillRect(0, lossY, lossBoxWidth, lossEscHeight);
 
-  ctx.strokeStyle = BORDER_COLOR;
-  ctx.lineWidth = BORDER_WIDTH;
-  ctx.strokeRect(0, lossY, lossBoxWidth, lossEscHeight);
+    ctx.strokeStyle = BORDER_COLOR;
+    ctx.lineWidth = BORDER_WIDTH;
+    ctx.strokeRect(0, lossY, lossBoxWidth, lossEscHeight);
 
-  ctx.font = `28px ${BODY_FONT_FAMILY}`;
-  ctx.fillStyle = "#000";
-  fillBoldItalicText(ctx, "Loss Conditions", padding, lossY + 40);
+    ctx.font = `28px ${BODY_FONT_FAMILY}`;
+    ctx.fillStyle = "#000";
+    fillBoldItalicText(ctx, "Loss Conditions", padding, lossY + 40);
 
-  ctx.font = `24px ${BODY_FONT_FAMILY}`;
-  let lossOffset = lossY + 80;
-  let lossParenState = false;
+    ctx.font = `24px ${BODY_FONT_FAMILY}`;
+    let lossOffset = lossY + 80;
 
-  leadLossGroup.lines.forEach((line, i) => {
-    lossParenState = drawNamedEffectLine(
-      ctx,
-      line,
-      padding,
-      lossOffset + i * 30,
-      leadLossGroup.boldPrefixLength,
-      i === 0,
-      lossParenState,
-    );
-  });
-
-  if (suppLossGroup) {
-    lossOffset += leadLossGroup.lines.length * 30 + 20;
-    lossParenState = false;
-
-    suppLossGroup.lines.forEach((line, i) => {
-      lossParenState = drawNamedEffectLine(
-        ctx,
-        line,
-        padding,
-        lossOffset + i * 30,
-        suppLossGroup.boldPrefixLength,
-        i === 0,
-        lossParenState,
-      );
+    // Only the adversaries that actually have a loss condition are listed —
+    // one that doesn't isn't shown as "None".
+    const lossGroups = [leadLossGroup, suppLossGroup].filter(Boolean);
+    lossGroups.forEach((group, groupIndex) => {
+      let lossParenState = false;
+      group.lines.forEach((line, i) => {
+        lossParenState = drawNamedEffectLine(
+          ctx,
+          line,
+          padding,
+          lossOffset + i * 30,
+          group.boldPrefixLength,
+          i === 0,
+          lossParenState,
+        );
+      });
+      lossOffset += group.lines.length * 30;
+      if (groupIndex < lossGroups.length - 1) lossOffset += 20;
     });
   }
 
@@ -655,15 +655,15 @@ async function renderAdversaryCard(data) {
   const escY = lossY;
 
   ctx.fillStyle = "rgb(235,230,215)";
-  ctx.fillRect(lossBoxWidth, escY, escBoxWidth, lossEscHeight);
+  ctx.fillRect(escX, escY, escBoxWidth, lossEscHeight);
 
   ctx.strokeStyle = BORDER_COLOR;
   ctx.lineWidth = BORDER_WIDTH;
-  ctx.strokeRect(lossBoxWidth, escY, escBoxWidth, lossEscHeight);
+  ctx.strokeRect(escX, escY, escBoxWidth, lossEscHeight);
 
   ctx.font = `28px ${BODY_FONT_FAMILY}`;
   ctx.fillStyle = "#000";
-  fillBoldItalicText(ctx, "Escalations", lossBoxWidth + padding, escY + 40);
+  fillBoldItalicText(ctx, "Escalations", escX + padding, escY + 40);
 
   ctx.font = `24px ${BODY_FONT_FAMILY}`;
   let escOffset = escY + 80;
@@ -681,7 +681,7 @@ async function renderAdversaryCard(data) {
       const namePart = line.slice(0, boldLen);
       const restPart = line.slice(boldLen);
 
-      let cursorX = lossBoxWidth + padding;
+      let cursorX = escX + padding;
       fillBoldText(ctx, namePart, cursorX, lineY);
       cursorX += ctx.measureText(namePart).width;
 
@@ -706,7 +706,7 @@ async function renderAdversaryCard(data) {
       escParenState = drawNamedEffectLine(
         ctx,
         line,
-        lossBoxWidth + padding,
+        escX + padding,
         lineY,
         leadEscGroup.boldPrefixLength,
         false,
@@ -727,8 +727,8 @@ async function renderAdversaryCard(data) {
         const namePart = line.slice(0, boldLen);
         const restPart = line.slice(boldLen);
 
-        fillBoldText(ctx, namePart, lossBoxWidth + padding, lineY);
-        const cursorX = lossBoxWidth + padding + ctx.measureText(namePart).width;
+        fillBoldText(ctx, namePart, escX + padding, lineY);
+        const cursorX = escX + padding + ctx.measureText(namePart).width;
 
         escParenState = drawEscalationNameEffect(
           ctx,
@@ -741,7 +741,7 @@ async function renderAdversaryCard(data) {
         escParenState = drawNamedEffectLine(
           ctx,
           line,
-          lossBoxWidth + padding,
+          escX + padding,
           lineY,
           suppEscGroup.boldPrefixLength,
           false,
@@ -751,57 +751,59 @@ async function renderAdversaryCard(data) {
     });
   }
 
-  // --- RULES SECTION ---
+  // --- RULES SECTION (omitted entirely if there's nothing left to show) ---
   const rulesY = lossY + lossEscHeight;
 
-  ctx.fillStyle = "rgb(235,230,215)";
-  ctx.fillRect(0, rulesY, width, rulesHeight);
+  if (ruleSections.length > 0) {
+    ctx.fillStyle = "rgb(235,230,215)";
+    ctx.fillRect(0, rulesY, width, rulesHeight);
 
-  ctx.strokeStyle = BORDER_COLOR;
-  ctx.lineWidth = BORDER_WIDTH;
-  ctx.strokeRect(0, rulesY, width, rulesHeight);
+    ctx.strokeStyle = BORDER_COLOR;
+    ctx.lineWidth = BORDER_WIDTH;
+    ctx.strokeRect(0, rulesY, width, rulesHeight);
 
-  ctx.font = `28px ${BODY_FONT_FAMILY}`;
-  ctx.fillStyle = "#000";
-  fillBoldItalicText(ctx, "Rules", padding, rulesY + 40);
-
-  let sectionY = rulesY + 80;
-  ruleSections.forEach((section, sectionIndex) => {
-    ctx.font = `26px ${BODY_FONT_FAMILY}`;
+    ctx.font = `28px ${BODY_FONT_FAMILY}`;
     ctx.fillStyle = "#000";
-    fillBoldText(ctx, section.label, padding, sectionY);
-    sectionY += RULE_SECTION_HEADER_HEIGHT;
+    fillBoldItalicText(ctx, "Rules", padding, rulesY + 40);
 
-    ctx.font = `24px ${BODY_FONT_FAMILY}`;
-    section.wrappedGroups.forEach((group) => {
-      let ruleParenState = false;
-      group.lines.forEach((line, lineIndex) => {
-        ruleParenState = drawNamedEffectLine(
-          ctx,
-          line,
-          padding,
-          sectionY,
-          group.boldPrefixLength,
-          lineIndex === 0,
-          ruleParenState,
-        );
-        sectionY += 30;
+    let sectionY = rulesY + 80;
+    ruleSections.forEach((section, sectionIndex) => {
+      ctx.font = `26px ${BODY_FONT_FAMILY}`;
+      ctx.fillStyle = "#000";
+      fillBoldText(ctx, section.label, padding, sectionY);
+      sectionY += RULE_SECTION_HEADER_HEIGHT;
+
+      ctx.font = `24px ${BODY_FONT_FAMILY}`;
+      section.wrappedGroups.forEach((group) => {
+        let ruleParenState = false;
+        group.lines.forEach((line, lineIndex) => {
+          ruleParenState = drawNamedEffectLine(
+            ctx,
+            line,
+            padding,
+            sectionY,
+            group.boldPrefixLength,
+            lineIndex === 0,
+            ruleParenState,
+          );
+          sectionY += 30;
+        });
       });
-    });
 
-    if (sectionIndex < ruleSections.length - 1) {
-      // Bias the divider toward the top of the gap so there's clear padding
-      // between the line and the next section's caption below it.
-      const dividerY = sectionY + 10;
-      ctx.strokeStyle = BORDER_COLOR;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(padding, dividerY);
-      ctx.lineTo(width - padding, dividerY);
-      ctx.stroke();
-      sectionY += RULE_SECTION_GAP;
-    }
-  });
+      if (sectionIndex < ruleSections.length - 1) {
+        // Bias the divider toward the top of the gap so there's clear padding
+        // between the line and the next section's caption below it.
+        const dividerY = sectionY + 10;
+        ctx.strokeStyle = BORDER_COLOR;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(padding, dividerY);
+        ctx.lineTo(width - padding, dividerY);
+        ctx.stroke();
+        sectionY += RULE_SECTION_GAP;
+      }
+    });
+  }
 
   return canvas.toBuffer("image/png");
 }

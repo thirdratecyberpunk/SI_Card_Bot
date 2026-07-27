@@ -793,7 +793,7 @@ var sweden = {
       name: "Heavy Mining",
       type: ["ravage"],
       effect:
-        "If the Invaders do at least 6 Damage to the land during Ravage, add an extra Blight. The additional :Blight: does not destroy :Presence: or cause cascades.",
+        "If the Invaders do at least 6 Damage to the land during Ravage, add an extra :Blight:. The additional :Blight: does not destroy Presence or cause cascades.",
     },
     2: {
       name: "Population Pressure at Home",

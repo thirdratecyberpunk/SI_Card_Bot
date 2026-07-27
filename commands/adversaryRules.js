@@ -16,6 +16,15 @@ const {
   renderAdversaryCard,
 } = require("../renderers/adversaryCardRenderer.js");
 
+// Strips "setup" out of each rule's type list (dropping the rule entirely if
+// Setup was its only type), so a rule that's also e.g. Build-phase still
+// shows up there even when Setup rules are hidden.
+function excludeSetupRules(rules) {
+  return rules
+    .map((r) => ({ ...r, type: (r.type || []).filter((t) => t !== "setup") }))
+    .filter((r) => r.type.length > 0);
+}
+
 module.exports = {
   name: "adversaryrules",
   description: "Get adversary information specific to a given setup.",
@@ -35,6 +44,10 @@ module.exports = {
     parts = parts.filter(
       (a) => a.toLowerCase() !== "md" && a.toLowerCase() !== "markdown",
     );
+
+    // noSetup hides any Setup-phase rules (and the Setup section, if it ends up empty)
+    const noSetup = parts.some((a) => a.toLowerCase() === "nosetup");
+    parts = parts.filter((a) => a.toLowerCase() !== "nosetup");
 
     if (!ad) {
       return msg.reply("Adversary registry not available.");
@@ -91,10 +104,15 @@ module.exports = {
       ? getLossCondition(supportingAdversary, supportingLevel, leadingLevel)
       : null;
 
-    const leadRules = getRulesForAdversary(leadingAdversary, leadingLevel);
-    const suppRules = supportingAdversary
+    let leadRules = getRulesForAdversary(leadingAdversary, leadingLevel);
+    let suppRules = supportingAdversary
       ? getRulesForAdversary(supportingAdversary, supportingLevel)
       : [];
+
+    if (noSetup) {
+      leadRules = excludeSetupRules(leadRules);
+      suppRules = excludeSetupRules(suppRules);
+    }
 
     // Build output
     const lines = [];
