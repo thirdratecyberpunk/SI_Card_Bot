@@ -148,20 +148,14 @@ async function renderAdversaryCard(data) {
   const escHeight = 80 + escTextLines * 30 + padding;
 
   // --- RULES HEIGHT ---
-  const rulesHeight = 80 + wrappedRules.length * 34 + padding;
+  const rulesHeight = 80 + wrappedRules.length * 30 + padding;
 
   // --- STACKING ORDER ---
   const lossEscHeight = Math.max(lossHeight, escHeight);
   const summaryHeight = 40;
 
   const totalHeight =
-    headerHeight +
-    summaryHeight +
-    40 +
-    lossEscHeight +
-    padding +
-    rulesHeight +
-    padding * 2;
+    headerHeight + summaryHeight + 40 + lossEscHeight + rulesHeight;
 
   // --- CREATE CANVAS ---
   const canvas = createCanvas(width, totalHeight);
@@ -249,11 +243,11 @@ async function renderAdversaryCard(data) {
   const lossY = summaryY + summaryHeight;
 
   ctx.fillStyle = "rgb(235,230,215)";
-  ctx.fillRect(0, lossY, lossBoxWidth, lossHeight);
+  ctx.fillRect(0, lossY, lossBoxWidth, lossEscHeight);
 
   ctx.strokeStyle = BORDER_COLOR;
   ctx.lineWidth = BORDER_WIDTH;
-  ctx.strokeRect(0, lossY, lossBoxWidth, lossHeight);
+  ctx.strokeRect(0, lossY, lossBoxWidth, lossEscHeight);
 
   ctx.font = `bold 28px ${BODY_FONT_FAMILY}`;
   ctx.fillStyle = "#000";
@@ -276,11 +270,11 @@ async function renderAdversaryCard(data) {
   const escY = lossY;
 
   ctx.fillStyle = "rgb(235,230,215)";
-  ctx.fillRect(lossBoxWidth, escY, escBoxWidth, escHeight);
+  ctx.fillRect(lossBoxWidth, escY, escBoxWidth, lossEscHeight);
 
   ctx.strokeStyle = BORDER_COLOR;
   ctx.lineWidth = BORDER_WIDTH;
-  ctx.strokeRect(lossBoxWidth, escY, escBoxWidth, escHeight);
+  ctx.strokeRect(lossBoxWidth, escY, escBoxWidth, lossEscHeight);
 
   ctx.font = `bold 28px ${BODY_FONT_FAMILY}`;
   ctx.fillStyle = "#000";
@@ -300,7 +294,7 @@ async function renderAdversaryCard(data) {
   });
 
   // --- RULES SECTION ---
-  const rulesY = lossY + lossEscHeight + padding;
+  const rulesY = lossY + lossEscHeight;
 
   ctx.fillStyle = "rgb(235,230,215)";
   ctx.fillRect(0, rulesY, width, rulesHeight);
