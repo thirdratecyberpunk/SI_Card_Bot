@@ -1,5 +1,5 @@
 const path = require("path");
-const { createCanvas, registerFont } = require("canvas");
+const { createCanvas, registerFont, loadImage } = require("canvas");
 
 registerFont(
   path.join(__dirname, "..", "fonts", "Oswald-VariableFont_wght.ttf"),
@@ -16,6 +16,20 @@ const BODY_FONT_FAMILY = "'Reem Kufi'";
 const HEADER_FILL = "#e1dcbe";
 const BORDER_COLOR = "#917d64";
 const BORDER_WIDTH = 8;
+
+const FLAG_HEIGHT = 70;
+const FLAG_GAP = 14;
+const FLAG_DIFFICULTY_GAP = 24;
+
+async function loadFlagImage(flagImagePath) {
+  if (!flagImagePath) return null;
+  try {
+    return await loadImage(path.join(__dirname, "..", flagImagePath));
+  } catch (err) {
+    console.error(`Failed to load flag image: ${flagImagePath}`, err);
+    return null;
+  }
+}
 
 // Reem Kufi has no italic style, so italics are faked with a horizontal shear.
 const ITALIC_SLANT = -0.22;
@@ -65,6 +79,25 @@ async function renderAdversaryCard(data) {
   };
 
   const safeSuppEsc = suppEsc ?? null;
+
+  // --- FLAG IMAGES (leading, then supporting) ---
+  const flagImages = (
+    await Promise.all(
+      [leadingAdversary?.flagImage, supportingAdversary?.flagImage].map(
+        loadFlagImage,
+      ),
+    )
+  ).filter(Boolean);
+
+  const flagWidths = flagImages.map(
+    (img) => (FLAG_HEIGHT * img.width) / img.height,
+  );
+  const flagsTotalWidth = flagWidths.length
+    ? flagWidths.reduce((a, b) => a + b, 0) + FLAG_GAP * (flagWidths.length - 1)
+    : 0;
+  const flagsBlockWidth = flagsTotalWidth
+    ? flagsTotalWidth + FLAG_DIFFICULTY_GAP
+    : 0;
 
   // --- TEXT MEASUREMENT SETUP ---
   const temp = createCanvas(10, 10);
@@ -190,9 +223,11 @@ async function renderAdversaryCard(data) {
 
   const leftX = padding;
   const rightMargin = 60;
-  const rightX = width - rightMargin - difficultyWidth;
+  const rightBlockWidth = flagsBlockWidth + difficultyWidth;
+  const rightBlockStartX = width - rightMargin - rightBlockWidth;
+  const rightX = rightBlockStartX + flagsBlockWidth;
 
-  const minGap = 40; // minimum gap between end of title and start of difficulty
+  const minGap = 40; // minimum gap between end of title and start of the flags/difficulty block
 
   const titleY = 70;
   const difficultyYSameLine = 70;
@@ -202,10 +237,20 @@ async function renderAdversaryCard(data) {
   ctx.fillStyle = "#000";
   ctx.fillText(headerTitle, leftX, titleY);
 
+  // Flags sit just before the difficulty text, in leading-then-supporting order,
+  // vertically centered in the header regardless of which line the difficulty lands on.
+  const flagY = (headerHeight - FLAG_HEIGHT) / 2;
+  let flagX = rightBlockStartX;
+  flagImages.forEach((img, i) => {
+    const w = flagWidths[i];
+    ctx.drawImage(img, flagX, flagY, w, FLAG_HEIGHT);
+    flagX += w + FLAG_GAP;
+  });
+
   ctx.font = `bold 32px ${BODY_FONT_FAMILY}`;
 
   const titleEndX = leftX + titleWidth;
-  const difficultyStartX = rightX;
+  const difficultyStartX = rightBlockStartX;
 
   if (difficultyStartX - titleEndX >= minGap) {
     // fits on same line without overlap

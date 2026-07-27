@@ -10,6 +10,7 @@ const InvaderDeckCard = require("./InvaderDeckCard.js");
 var habsburgmining = {
   title: "habsburg_mining",
   name: "Habsburg Mining Expedition",
+  flagImage: "images/flags/Habsburg_Mining_Expedition_Flag.png",
   emote: "<:FlagHabsburgMining:1181395803479212103>",
   difficulty: [2, 3, 5, 6, 8, 9, 10],
   panel: "https://i.imgur.com/xzXF6vu.png",
@@ -116,6 +117,7 @@ Ceaseless Mining: Lands with 3 or more Invaders are Mining lands. In Mining land
 var prussia = {
   title: "prussia",
   name: "The Kingdom of Brandenburg-Prussia",
+  flagImage: "images/flags/Brand-Prussia_Flag.png",
   emote: "<:FlagBrandenburgPrussia:852366012846309406>",
   difficulty: [1, 2, 4, 6, 7, 9, 10],
   panel: "https://imgur.com/KdyfP3C",
@@ -223,6 +225,7 @@ var prussia = {
 var england = {
   title: "england",
   name: "The Kingdom of England",
+  flagImage: "images/flags/England_WrinkledFlag.png",
   emote: "<:FlagEngland:852366012175482900>",
   difficulty: [1, 3, 4, 6, 7, 9, 10],
   panel: "https://imgur.com/c5KzcIq",
@@ -304,6 +307,7 @@ var england = {
 var france = {
   title: "france",
   name: "The Kingdom of France",
+  flagImage: "images/flags/France_(Plantation_Colony)_WrinkledFlag.png",
   emote: "<:FlagFrance:852366013243981885>",
   difficulty: [2, 3, 5, 7, 8, 9, 10],
   panel: "https://imgur.com/S8lL3cA",
@@ -391,6 +395,7 @@ var france = {
 var habsburg = {
   title: "habsburg_livestock",
   name: "The Habsburg Monarchy",
+  flagImage: "images/flags/Habsburg_Monarchy_(Livestock_Colony)_WrinkledFlag.png",
   emote: "<:FlagHabsburg:852366013638639636>",
   difficulty: [2, 3, 5, 6, 8, 9, 10],
   panel: "https://imgur.com/GtptfDJ",
@@ -490,6 +495,7 @@ var habsburg = {
 var russia = {
   title: "russia",
   name: "The Tsardom of Russia",
+  flagImage: "images/flags/Russia_WrinkledFlag.png",
   emote: "<:FlagRussia:852366012639739945>",
   difficulty: [1, 3, 4, 6, 7, 9, 11],
   panel: "https://imgur.com/n16FmcP",
@@ -587,6 +593,7 @@ var russia = {
 var scotland = {
   title: "scotland",
   name: "The Kingdom of Scotland",
+  flagImage: "images/flags/Scotland_WrinkledFlag.png",
   emote: "<:FlagScotland:852366013621207040>",
   difficulty: [1, 3, 4, 6, 7, 8, 10],
   panel: "https://imgur.com/A5HccZx",
@@ -696,6 +703,7 @@ var scotland = {
 var sweden = {
   title: "sweden",
   name: "The Kingdom of Sweden",
+  flagImage: "images/flags/Sweden_WrinkledFlag.png",
   emote: "<:FlagSweden:852366014434770963>",
   difficulty: [1, 2, 3, 5, 6, 7, 8],
   panel: "https://imgur.com/D6ZeLOV",
