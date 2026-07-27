@@ -9,8 +9,21 @@ const {
   computeInvaderDeck,
   computeFearDeck,
   getRulesForAdversary,
+  getLossCondition,
 } = require("./AdversaryNames.js");
 const { combineDifficulty } = require("../utils/difficulty.js");
+const {
+  renderAdversaryCard,
+} = require("../renderers/adversaryCardRenderer.js");
+
+// Strips "setup" out of each rule's type list (dropping the rule entirely if
+// Setup was its only type), so a rule that's also e.g. Build-phase still
+// shows up there even when Setup rules are hidden.
+function excludeSetupRules(rules) {
+  return rules
+    .map((r) => ({ ...r, type: (r.type || []).filter((t) => t !== "setup") }))
+    .filter((r) => r.type.length > 0);
+}
 
 module.exports = {
   name: "adversaryrules",
@@ -26,6 +39,15 @@ module.exports = {
     } else if (Array.isArray(args)) {
       parts = args.slice();
     }
+
+    // Remove md/markdown before parsing adversaries
+    parts = parts.filter(
+      (a) => a.toLowerCase() !== "md" && a.toLowerCase() !== "markdown",
+    );
+
+    // noSetup hides any Setup-phase rules (and the Setup section, if it ends up empty)
+    const noSetup = parts.some((a) => a.toLowerCase() === "nosetup");
+    parts = parts.filter((a) => a.toLowerCase() !== "nosetup");
 
     if (!ad) {
       return msg.reply("Adversary registry not available.");
@@ -73,13 +95,24 @@ module.exports = {
     const leadEsc = leadingAdversary.escalation;
     const suppEsc = supportingAdversary?.escalation ?? null;
 
-    const leadLoss = leadingAdversary.lossCondition;
-    const suppLoss = supportingAdversary?.lossCondition ?? null;
+    const leadLoss = getLossCondition(
+      leadingAdversary,
+      leadingLevel,
+      supportingAdversary ? supportingLevel : null,
+    );
+    const suppLoss = supportingAdversary
+      ? getLossCondition(supportingAdversary, supportingLevel, leadingLevel)
+      : null;
 
-    const leadRules = getRulesForAdversary(leadingAdversary, leadingLevel);
-    const suppRules = supportingAdversary
+    let leadRules = getRulesForAdversary(leadingAdversary, leadingLevel);
+    let suppRules = supportingAdversary
       ? getRulesForAdversary(supportingAdversary, supportingLevel)
       : [];
+
+    if (noSetup) {
+      leadRules = excludeSetupRules(leadRules);
+      suppRules = excludeSetupRules(suppRules);
+    }
 
     // Build output
     const lines = [];
@@ -152,30 +185,34 @@ module.exports = {
 
     const output = lines.join("\n");
 
-    // If short enough, send normally
-    if (output.length <= 1800) {
-      return msg.reply(output);
+    // Always generate PNG using your renderer
+    try {
+      const pngBuffer = await renderAdversaryCard({
+        leadingAdversary,
+        leadingLevel,
+        supportingAdversary,
+        supportingLevel,
+        combinedDifficulty,
+        fearDeck,
+        invaderDeck,
+        leadEsc,
+        suppEsc,
+        leadLoss,
+        suppLoss,
+        leadRules,
+        suppRules,
+        outputText: output,
+      });
+
+      return msg.reply({
+        files: [{ attachment: pngBuffer, name: "adversary.png" }],
+      });
+    } catch (err) {
+      console.error("PNG render failed:", err);
+
+      return msg.reply(
+        "Image rendering failed — something went wrong while generating the adversary card.",
+      );
     }
-
-    // Otherwise send as markdown file
-    const filename =
-      `${leadingAdversary.title}_${leadingLevel}` +
-      (supportingAdversary
-        ? `_${supportingAdversary.title}_${supportingLevel}`
-        : "") +
-      `.md`;
-
-    const buffer = Buffer.from(output, "utf-8");
-
-    return msg.reply({
-      content:
-        `## ${leadingAdversary.name} ${leadingLevel}` +
-        (supportingAdversary
-          ? ` + ${supportingAdversary.name} ${supportingLevel}`
-          : "") +
-        ` ${leadingAdversary.emote}` +
-        (supportingAdversary ? ` ${supportingAdversary.emote}` : ""),
-      files: [{ attachment: buffer, name: filename }],
-    });
   },
 };

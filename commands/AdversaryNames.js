@@ -10,6 +10,7 @@ const InvaderDeckCard = require("./InvaderDeckCard.js");
 var habsburgmining = {
   title: "habsburg_mining",
   name: "Habsburg Mining Expedition",
+  flagImage: "images/flags/Habsburg_Mining_Expedition_Flag.png",
   emote: "<:FlagHabsburgMining:1181395803479212103>",
   difficulty: [2, 3, 5, 6, 8, 9, 10],
   panel: "https://i.imgur.com/xzXF6vu.png",
@@ -79,6 +80,7 @@ var habsburgmining = {
   rules: {
     1: {
       name: "Avarice Rewarded",
+      type: ["ravage", "build"],
       effect:
         "When :Blight: added by a Ravage Action would cascade, instead Upgrade 1 :InvaderExplorer:/:InvaderTown: (before :Dahan: counterattack.)\
 Ceaseless Mining: Lands with 3 or more Invaders are Mining lands. In Mining lands:\
@@ -87,26 +89,31 @@ Ceaseless Mining: Lands with 3 or more Invaders are Mining lands. In Mining land
     },
     2: {
       name: "Miners Come From Far and Wide",
+      type: ["setup"],
       effect:
-        "Setup: Add 1 :InvaderExplorer: in each land with no :Dahan:. Add 1 :TokenDisease: and 1 City in the highest-numbered land with a :InvaderTown: Setup symbol.",
+        "Setup: Add 1 :InvaderExplorer: in each land with no :Dahan:. Add 1 :TokenDisease: and 1 :InvaderCity: in the highest-numbered land with a :InvaderTown: Setup symbol.",
     },
     3: {
       name: "Mining Boom (I)",
+      type: ["build"],
       effect:
         "After the Build Step, on each board: Choose a land with :InvaderExplorer:. Upgrade 1 :InvaderExplorer: there.",
     },
     4: {
       name: "Untapped Salt Deposits",
+      type: ["setup"],
       effect:
         "Setup: Remove the Stage II 'Coastal Lands' card before randomly choosing Stage II cards. Place the 'Salt Deposits' card in place of the 2nd Stage II card.",
     },
     5: {
       name: "Mining Boom (II)",
+      type: ["build"],
       effect:
         "Instead of Mining Boom (I), after the Build Step, on each board: Choose a land with :InvaderExplorer:. Build there, then Upgrade 1 :InvaderExplorer:. (Build normally in a Mining land.)",
     },
     6: {
       name: "The Empire Ascendant",
+      type: ["setup", "explore"],
       effect:
         "Setup and During the Explore Step: On boards with 3 or fewer :Blight:: Add +1 :InvaderExplorer: in each land successfully explored. (Max. 2 lands per board per Explore Card.)",
     },
@@ -116,6 +123,7 @@ Ceaseless Mining: Lands with 3 or more Invaders are Mining lands. In Mining land
 var prussia = {
   title: "prussia",
   name: "The Kingdom of Brandenburg-Prussia",
+  flagImage: "images/flags/Brand-Prussia_Flag.png",
   emote: "<:FlagBrandenburgPrussia:852366012846309406>",
   difficulty: [1, 2, 4, 6, 7, 9, 10],
   panel: "https://imgur.com/KdyfP3C",
@@ -191,30 +199,36 @@ var prussia = {
   rules: {
     1: {
       name: "Fast Start",
+      type: ["setup"],
       effect: "During Setup, on each board add 1 :InvaderTown: to land #3.",
     },
     2: {
       name: "Surge of Colonists",
+      type: ["setup"],
       effect:
         "When making the Invader Deck, put 1 of the Stage III cards between Stage I and Stage II.",
     },
     3: {
       name: "Efficient",
+      type: ["setup"],
       effect:
         "When making the Invader Deck, remove an additional Stage I card.",
     },
     4: {
       name: "Aggressive Timetable",
+      type: ["setup"],
       effect:
         "When making the Invader Deck, remove an additional Stage II card.",
     },
     5: {
       name: "Ruthlessly Efficient",
+      type: ["setup"],
       effect:
         "When making the Invader Deck, remove an additional Stage I card.",
     },
     6: {
       name: "Terrifyingly Efficient",
+      type: ["setup"],
       effect: "When making the Invader Deck, remove all Stage I cards.",
     },
   },
@@ -223,6 +237,7 @@ var prussia = {
 var england = {
   title: "england",
   name: "The Kingdom of England",
+  flagImage: "images/flags/England_WrinkledFlag.png",
   emote: "<:FlagEngland:852366012175482900>",
   difficulty: [1, 3, 4, 6, 7, 9, 10],
   panel: "https://imgur.com/c5KzcIq",
@@ -265,36 +280,42 @@ var england = {
       "If 7 or more :InvaderTown:/:InvaderCity: are ever in a single land, the Invaders win.",
   },
   escalation: {
-    name: "Land Rush",
+    name: "Building Boom",
     effect:
-      "On each board with :InvaderTown:/:InvaderCity:, add 1 :InvaderTown: to a land without :InvaderTown:.",
+      "On each board with :InvaderTown:/:InvaderCity:, Build in the land with the most :InvaderTown:/:InvaderCity:.",
   },
   rules: {
     1: {
       name: "Indentured Servants Earn Land",
+      type: ["build"],
       effect:
-        "Invader Build Cards affect matching lands without Invaders if they are adjacent to at least 2 :InvaderTown:s.",
+        "Invader Build Cards affect matching lands without Invaders if they are adjacent to at least 2 :InvaderTown:/:InvaderCity:s.",
     },
     2: {
       name: "Criminals and Malcontents",
+      type: ["setup"],
       effect:
         "During Setup, on each board add 1 :InvaderTown: to land #1 and 1 Town to land #2.",
     },
     3: {
       name: "High Immigration (I)",
+      type: ["build"],
       effect:
         'Put the "High Immigration" tile on the Invader board, to the left of "Ravage". The Invaders take this Build action each Invader phase before Ravaging. Cards slide left from Ravage to it, and from it to the discard pile. Remove the tile when a Stage II card slides onto it, putting that card in the discard.',
     },
     4: {
       name: "High Immigration (full)",
+      type: ["build"],
       effect: "The extra Build tile remains out the entire game.",
     },
     5: {
       name: "Local Autonomy",
+      type: ["ongoing"],
       effect: ":InvaderTown:/:InvaderCity: have +1 Health.",
     },
     6: {
       name: "Independent Resolve",
+      type: ["setup", "build"],
       effect:
         "During Setup, add an additional 1 :TokenFear: to the Fear Pool per player in the game. During any Invader Phase where you resolve no Fear Cards, perform the Build from High Immigration twice. (This has no effect if no card is on the extra Build slot.)",
     },
@@ -304,6 +325,7 @@ var england = {
 var france = {
   title: "france",
   name: "The Kingdom of France",
+  flagImage: "images/flags/France_(Plantation_Colony)_WrinkledFlag.png",
   emote: "<:FlagFrance:852366013243981885>",
   difficulty: [2, 3, 5, 7, 8, 9, 10],
   panel: "https://imgur.com/S8lL3cA",
@@ -340,7 +362,6 @@ var france = {
     5: [1, 2, 1],
     6: [1, 2, 2],
   },
-  // TODO: France's loss con is variable, will need to template this
   lossCondition: {
     name: "Sprawling Plantations",
     effect:
@@ -355,31 +376,37 @@ var france = {
   rules: {
     1: {
       name: "Frontier Explorers",
+      type: ["explore"],
       effect:
         "Except during Setup: After Invaders successfully Explore into a land which had no :InvaderTown:/:InvaderCity:, add 1 :InvaderExplorer: there.",
     },
     2: {
       name: "Slave Labor",
+      type: ["setup", "build"],
       effect:
         'During Setup, put the "Slave Rebellion" event under the top 3 cards of the Event Deck. After Invaders Build in a land with 2 :InvaderExplorer: or more, replace all but 1 :InvaderExplorer: there with an equal number of :InvaderTown:.',
     },
     3: {
       name: "Early Plantation",
+      type: ["setup"],
       effect:
         "During Setup, on each board add 1 :InvaderTown: to the highest-numbered land without :InvaderTown:. Add 1 :InvaderTown: to land #1.",
     },
     4: {
       name: "Triangle Trade",
+      type: ["build"],
       effect:
         "Whenever Invaders Build a Coastal :InvaderCity:, add 1 :InvaderTown: to the adjacent land with the fewest :InvaderTown:.",
     },
     5: {
       name: "Slow-Healing Ecosystem",
+      type: ["ongoing"],
       effect:
         "When you remove :Blight: from the board, put it here instead of onto the Blight Card. As soon as you have 3 :Blight: per player here, move it all back to the Blight Card.",
     },
     6: {
       name: "Persistent Explorers",
+      type: ["explore"],
       effect:
         "After resolving an Explore Card, on each board add 1 :InvaderExplorer: to a land without any. Fear Card effects never remove :InvaderExplorer:. If one would, you may instead Push that :InvaderExplorer:.",
     },
@@ -391,6 +418,8 @@ var france = {
 var habsburg = {
   title: "habsburg_livestock",
   name: "The Habsburg Monarchy",
+  flagImage:
+    "images/flags/Habsburg_Monarchy_(Livestock_Colony)_WrinkledFlag.png",
   emote: "<:FlagHabsburg:852366013638639636>",
   difficulty: [2, 3, 5, 6, 8, 9, 10],
   panel: "https://imgur.com/GtptfDJ",
@@ -456,31 +485,37 @@ var habsburg = {
   rules: {
     1: {
       name: "Migratory Herders",
+      type: ["build"],
       effect:
         "After the normal Build Step: In each land matching a Build Card, Gather 1 :InvaderTown: from a land not matching a Build Card. (In board/land order.)",
     },
     2: {
       name: "More Rural Than Urban",
+      type: ["setup", "build"],
       effect:
         "During Setup, on each board, add 1 :InvaderTown: to land #2 and 1 :InvaderTown: to the highest-numbered land without Setup symbols. During Play, when Invaders would Build 1 :InvaderCity: in an Inland land, they instead Build 2 :InvaderTown:.",
     },
     3: {
       name: "Fast Spread",
+      type: ["setup"],
       effect:
         "When making the Invader Deck, Remove 1 additional Stage I Card. ",
     },
     4: {
       name: "Herds Thrive in Verdant Lands",
+      type: ["ongoing"],
       effect:
         ':InvaderTown: in lands without :Blight: are Durable: they have +2 Health, and "Destroy :InvaderTown:" effects instead deal 2 Damage (to those :InvaderTown: only) per :InvaderTown: they could Destroy. ("Destroy all :InvaderTown:" works normally.)',
     },
     5: {
       name: "Wave of Immigration",
+      type: ["setup"],
       effect:
         "Before the initial Explore, put the Habsburg Reminder Card under the top 5 Invader Cards. When Revealed, on each board, add 1 :InvaderCity: to a Coastal land without :InvaderCity: and 1 :InvaderTown: to the 3 Inland lands with the fewest :Blight:.",
     },
     6: {
       name: "Far-Flung Herds",
+      type: ["ravage"],
       effect:
         "Ravages do +2 Damage (total) if any adjacent lands have :InvaderTown:. (This does not cause lands without Invaders to Ravage.)",
     },
@@ -490,6 +525,7 @@ var habsburg = {
 var russia = {
   title: "russia",
   name: "The Tsardom of Russia",
+  flagImage: "images/flags/Russia_WrinkledFlag.png",
   emote: "<:FlagRussia:852366012639739945>",
   difficulty: [1, 3, 4, 6, 7, 9, 11],
   panel: "https://imgur.com/n16FmcP",
@@ -553,31 +589,37 @@ var russia = {
   rules: {
     1: {
       name: "Hunters Bring Home Shell and Hide",
+      type: ["setup", "ravage"],
       effect:
         "During Setup, on each board, add 1 :TokenBeasts: and 1 :InvaderExplorer: to the highest-numbered land without :InvaderTown:/:InvaderCity:. During Play, :InvaderExplorer: do +1 Damage. When Ravage adds :Blight: to a land (including cascades), Destroy 1 :TokenBeasts: in that land.",
     },
     2: {
       name: "A Sense for Impending Disaster",
+      type: ["ongoing"],
       effect:
         "The first time each Action would Destroy :InvaderExplorer:: If possible, 1 of those :InvaderExplorer: is instead Pushed; 1 :TokenFear: when you do so.",
     },
     3: {
       name: "Competition Among Hunters",
+      type: ["ravage"],
       effect:
         "Ravage Cards also match lands with 3 or more :InvaderExplorer:. (If the land already matched the Ravage Card, it still Ravages just once.)",
     },
     4: {
       name: "Accelerated Exploitation",
+      type: ["setup"],
       effect:
         "When making the Invader Deck, put 1 Stage III Card after each Stage II Card. ",
     },
     5: {
       name: "Entrench in the Face of Fear",
+      type: ["setup"],
       effect:
         "Put an unused Stage II Invader Card under the top 3 Fear Cards, and an unused Stage III Card under the top 7 Fear Cards. When one is revealed, immediately place it in the Build space (face-up).",
     },
     6: {
       name: "Pressure for Fast Profit",
+      type: ["ravage"],
       effect:
         "After the Ravage Step of turn 2+, on each board where it added no :Blight:: In the land with the most :InvaderExplorer: (min. 1), add 1 :InvaderExplorer: and 1 :InvaderTown:.",
     },
@@ -587,6 +629,7 @@ var russia = {
 var scotland = {
   title: "scotland",
   name: "The Kingdom of Scotland",
+  flagImage: "images/flags/Scotland_WrinkledFlag.png",
   emote: "<:FlagScotland:852366013621207040>",
   difficulty: [1, 3, 4, 6, 7, 8, 10],
   panel: "https://imgur.com/A5HccZx",
@@ -660,31 +703,37 @@ var scotland = {
   rules: {
     1: {
       name: "Trading Port",
+      type: ["explore"],
       effect:
         'After Setup, in Coastal lands, Explore Cards add 1 :InvaderTown: instead of 1 :InvaderExplorer: . "Coastal Lands" Invader cards do this for maximum 2 lands per board.',
     },
     2: {
       name: "Seize Opportunity",
+      type: ["setup"],
       effect:
         'During Setup, add 1 :InvaderCity: to land #2. Place "Coastal Lands" as the 3rd Stage II card, and move the two Stage II Cards above it up by one.',
     },
     3: {
       name: "Chart the Coastline",
+      type: ["build"],
       effect:
         "In Coastal lands, Build Cards affect lands without Invaders, so long as there is an adjacent :InvaderCity:.",
     },
     4: {
       name: "Ambition of a Minor Nation",
+      type: ["setup"],
       effect:
         "During Setup, replace the bottom Stage I Card with the bottom Stage III Card.",
     },
     5: {
       name: "Runoff and Bilgewater",
+      type: ["ravage"],
       effect:
         "After a Ravage Action adds :Blight: to a Coastal Land, add 1 :Blight: to that board's Ocean (without cascading). Treat the Ocean as a Coastal Wetland for this rule and for :Blight: removal/movement.",
     },
     6: {
       name: "Exports Fuel Inward Growth",
+      type: ["ravage"],
       effect:
         "After the Ravage step, add 1 :InvaderTown: to each Inland land that matches a Ravage card and is within 1 Range of :InvaderTown:/:InvaderCity:.",
     },
@@ -696,6 +745,7 @@ var scotland = {
 var sweden = {
   title: "sweden",
   name: "The Kingdom of Sweden",
+  flagImage: "images/flags/Sweden_WrinkledFlag.png",
   emote: "<:FlagSweden:852366014434770963>",
   difficulty: [1, 2, 3, 5, 6, 7, 8],
   panel: "https://imgur.com/D6ZeLOV",
@@ -741,30 +791,36 @@ var sweden = {
   rules: {
     1: {
       name: "Heavy Mining",
+      type: ["ravage"],
       effect:
-        "If the Invaders do at least 6 Damage to the land during Ravage, add an extra Blight. The additional :Blight: does not destroy :Presence: or cause cascades.",
+        "If the Invaders do at least 6 Damage to the land during Ravage, add an extra :Blight:. The additional :Blight: does not destroy Presence or cause cascades.",
     },
     2: {
       name: "Population Pressure at Home",
+      type: ["setup"],
       effect:
         "During Setup, on each board add 1 :InvaderCity: to land #4. On boards where land #4 starts with :Blight:, put that :Blight: in land #5 instead.",
     },
     3: {
       name: "Fine Steel for Tools and Guns",
+      type: ["ongoing"],
       effect: ":InvaderTown: deal 3 Damage. :InvaderCity: deal 5 Damage.",
     },
     4: {
       name: "Royal Backing",
+      type: ["setup"],
       effect:
         "During Setup, after adding all other Invaders, Accelerate the Invader Deck. On each board, add 1 :InvaderTown: to the land of that terrain with the fewest Invaders.",
     },
     5: {
       name: "Mining Rush",
+      type: ["ravage"],
       effect:
         "When Ravaging adds at least 1 :Blight: to a land, also add 1 :InvaderTown: to an adjacent land without :InvaderTown:/:InvaderCity:. Cascading :Blight: does not cause this effect.",
     },
     6: {
       name: "Prospecting Outpost",
+      type: ["setup"],
       effect:
         "During setup, on each board add 1 :InvaderTown: and 1 :Blight: to land #8. The :Blight: comes from the box, not the Blight Card.",
     },
@@ -963,7 +1019,9 @@ function computeInvaderDeck(
 
 /**
  * Extract rules for an adversary up to a given difficulty level.
- * Returns array of { index, name, effect } sorted by index.
+ * Returns array of { index, name, effect, type } sorted by index.
+ * type is an array of phases the rule applies to, e.g. ["setup"] or
+ * ["setup", "build"]; "ongoing" for passive/always-on or phase-agnostic rules.
  */
 function getRulesForAdversary(adversary, maxLevel) {
   if (!adversary || !adversary.rules) return [];
@@ -976,7 +1034,35 @@ function getRulesForAdversary(adversary, maxLevel) {
       index: i,
       name: adversary.rules[i].name,
       effect: adversary.rules[i].effect,
+      type: adversary.rules[i].type ?? ["ongoing"],
     }));
+}
+
+/**
+ * Returns the loss condition for an adversary, scaling France's "Sprawling
+ * Plantations" base pool size when played as part of a doubles game (per its
+ * doublesNotes: at France Level 2+, +1 Town per player for each level of the
+ * other Adversary). otherLevel is the other adversary's level, or
+ * null/omitted when solo.
+ */
+function getLossCondition(adversary, level, otherLevel = null) {
+  if (!adversary || !adversary.lossCondition) return null;
+
+  const { name, effect } = adversary.lossCondition;
+
+  if (
+    adversary.title === "france" &&
+    level >= 2 &&
+    typeof otherLevel === "number"
+  ) {
+    const scaledPool = 7 + otherLevel;
+    return {
+      name,
+      effect: effect.replace(/\b7\b/, String(scaledPool)),
+    };
+  }
+
+  return adversary.lossCondition;
 }
 
 // Export registry and helpers
@@ -988,4 +1074,5 @@ module.exports = {
   computeFearDeck,
   computeInvaderDeck,
   getRulesForAdversary,
+  getLossCondition,
 };
