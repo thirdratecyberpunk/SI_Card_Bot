@@ -41,6 +41,48 @@ function fillItalicText(ctx, text, x, y) {
 }
 
 /**
+ * Draws text at (x, y), italicising any parenthesised "(...)" spans.
+ * startInParen lets a bracketed span continue across a wrapped line break.
+ * Returns whether the line ended mid-bracket, for the next line to pick up.
+ */
+function drawParenAwareText(ctx, text, x, y, startInParen) {
+  let cursorX = x;
+  let inParen = startInParen;
+  let i = 0;
+
+  while (i < text.length) {
+    if (!inParen) {
+      const idx = text.indexOf("(", i);
+      const end = idx === -1 ? text.length : idx;
+      const segment = text.slice(i, end);
+      if (segment) {
+        ctx.fillText(segment, cursorX, y);
+        cursorX += ctx.measureText(segment).width;
+      }
+      if (idx === -1) break;
+      i = idx;
+      inParen = true;
+    } else {
+      const idx = text.indexOf(")", i);
+      const end = idx === -1 ? text.length : idx + 1;
+      const segment = text.slice(i, end);
+      if (segment) {
+        fillItalicText(ctx, segment, cursorX, y);
+        cursorX += ctx.measureText(segment).width;
+      }
+      if (idx === -1) {
+        i = text.length;
+        break;
+      }
+      i = end;
+      inParen = false;
+    }
+  }
+
+  return inParen;
+}
+
+/**
  * Renders a PNG adversary card in a wiki‑style layout.
  * Includes header, fear deck summary, invader deck summary,
  * dynamic loss conditions, dynamic escalations, and dynamic rules.
@@ -128,9 +170,10 @@ async function renderAdversaryCard(data) {
     ...suppRules.map((r) => `• ${r.name}: ${r.effect}`),
   ];
 
-  const wrappedRules = rulesText.flatMap((line) =>
+  const wrappedRuleGroups = rulesText.map((line) =>
     wrap(line, width - padding * 2),
   );
+  const wrappedRules = wrappedRuleGroups.flat();
 
   // --- HEADER HEIGHT ---
   const headerHeight = 120;
@@ -181,7 +224,7 @@ async function renderAdversaryCard(data) {
   const escHeight = 80 + escTextLines * 30 + padding;
 
   // --- RULES HEIGHT ---
-  const rulesHeight = 80 + wrappedRules.length * 30 + padding;
+  const rulesHeight = 80 + wrappedRules.length * 30;
 
   // --- STACKING ORDER ---
   const lossEscHeight = Math.max(lossHeight, escHeight);
@@ -207,16 +250,14 @@ async function renderAdversaryCard(data) {
   ctx.strokeRect(0, 0, width, headerHeight);
 
   // --- HEADER TITLE + DIFFICULTY WITH OVERLAP CHECK ---
-  const headerTitle =
+  const headerTitle = (
     `${leadingAdversary.name} ${leadingLevel}` +
     (supportingAdversary
       ? ` + ${supportingAdversary.name} ${supportingLevel}`
-      : "");
+      : "")
+  ).toUpperCase();
 
   const difficultyText = `Difficulty ${combinedDifficulty}`;
-
-  ctx.font = `40px ${TITLE_FONT_FAMILY}`;
-  const titleWidth = ctx.measureText(headerTitle).width;
 
   ctx.font = `bold 32px ${BODY_FONT_FAMILY}`;
   const difficultyWidth = ctx.measureText(difficultyText).width;
@@ -229,11 +270,24 @@ async function renderAdversaryCard(data) {
 
   const minGap = 40; // minimum gap between end of title and start of the flags/difficulty block
 
+  // Shrink the title font as needed so a long combined title never runs into
+  // the flags/difficulty block, which is always drawn at a fixed position.
+  const maxTitleWidth = rightBlockStartX - leftX - minGap;
+  const MIN_TITLE_FONT_SIZE = 24;
+  let titleFontSize = 40;
+  ctx.font = `${titleFontSize}px ${TITLE_FONT_FAMILY}`;
+  let titleWidth = ctx.measureText(headerTitle).width;
+  while (titleWidth > maxTitleWidth && titleFontSize > MIN_TITLE_FONT_SIZE) {
+    titleFontSize -= 1;
+    ctx.font = `${titleFontSize}px ${TITLE_FONT_FAMILY}`;
+    titleWidth = ctx.measureText(headerTitle).width;
+  }
+
   const titleY = 70;
   const difficultyYSameLine = 70;
   const difficultyYSecondLine = 105;
 
-  ctx.font = `40px ${TITLE_FONT_FAMILY}`;
+  ctx.font = `${titleFontSize}px ${TITLE_FONT_FAMILY}`;
   ctx.fillStyle = "#000";
   ctx.fillText(headerTitle, leftX, titleY);
 
@@ -300,15 +354,29 @@ async function renderAdversaryCard(data) {
 
   ctx.font = `24px ${BODY_FONT_FAMILY}`;
   let lossOffset = lossY + 80;
+  let lossParenState = false;
 
   leadLossWrapped.forEach((line, i) => {
-    ctx.fillText(line, padding, lossOffset + i * 30);
+    lossParenState = drawParenAwareText(
+      ctx,
+      line,
+      padding,
+      lossOffset + i * 30,
+      lossParenState,
+    );
   });
 
   lossOffset += leadLossWrapped.length * 30 + 20;
+  lossParenState = false;
 
   suppLossWrapped.forEach((line, i) => {
-    ctx.fillText(line, padding, lossOffset + i * 30);
+    lossParenState = drawParenAwareText(
+      ctx,
+      line,
+      padding,
+      lossOffset + i * 30,
+      lossParenState,
+    );
   });
 
   // --- ESCALATIONS BOX ---
@@ -327,15 +395,29 @@ async function renderAdversaryCard(data) {
 
   ctx.font = `24px ${BODY_FONT_FAMILY}`;
   let escOffset = escY + 80;
+  let escParenState = false;
 
   leadEscWrapped.forEach((line, i) => {
-    ctx.fillText(line, lossBoxWidth + padding, escOffset + i * 30);
+    escParenState = drawParenAwareText(
+      ctx,
+      line,
+      lossBoxWidth + padding,
+      escOffset + i * 30,
+      escParenState,
+    );
   });
 
   escOffset += leadEscWrapped.length * 30 + 20;
+  escParenState = false;
 
   suppEscWrapped.forEach((line, i) => {
-    ctx.fillText(line, lossBoxWidth + padding, escOffset + i * 30);
+    escParenState = drawParenAwareText(
+      ctx,
+      line,
+      lossBoxWidth + padding,
+      escOffset + i * 30,
+      escParenState,
+    );
   });
 
   // --- RULES SECTION ---
@@ -353,8 +435,19 @@ async function renderAdversaryCard(data) {
   fillItalicText(ctx, "Rules", padding, rulesY + 40);
 
   ctx.font = `24px ${BODY_FONT_FAMILY}`;
-  wrappedRules.forEach((line, i) => {
-    ctx.fillText(line, padding, rulesY + 80 + i * 30);
+  let ruleLineIndex = 0;
+  wrappedRuleGroups.forEach((group) => {
+    let ruleParenState = false;
+    group.forEach((line) => {
+      ruleParenState = drawParenAwareText(
+        ctx,
+        line,
+        padding,
+        rulesY + 80 + ruleLineIndex * 30,
+        ruleParenState,
+      );
+      ruleLineIndex += 1;
+    });
   });
 
   return canvas.toBuffer("image/png");
