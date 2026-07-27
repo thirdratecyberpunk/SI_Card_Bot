@@ -11,11 +11,11 @@ var habsburgmining = {
   title: "habsburg_mining",
   name: "Habsburg Mining Expedition",
   flagImage: "images/flags/Habsburg_Mining_Expedition_Flag.png",
-  emote: "<:FlagHabsburgMining:1181395803479212103>",
+  emote: "<:FlagHabsburgMiningHME:1487249155834253553>",
   difficulty: [2, 3, 5, 6, 8, 9, 10],
   panel: "https://i.imgur.com/xzXF6vu.png",
   alias: [
-    "<:FlagHabsburgMining:1181395803479212103>",
+    "<:FlagHabsburgMiningHME:1487249155834253553>",
     ":pick:",
     "hme",
     "saltburg",
@@ -124,10 +124,10 @@ var prussia = {
   title: "prussia",
   name: "The Kingdom of Brandenburg-Prussia",
   flagImage: "images/flags/Brand-Prussia_Flag.png",
-  emote: "<:FlagBrandenburgPrussia:852366012846309406>",
+  emote: "<:FlagBrandenburgPrussiaBP:1487249033104855253>",
   difficulty: [1, 2, 4, 6, 7, 9, 10],
   panel: "https://imgur.com/KdyfP3C",
-  alias: ["<:FlagBrandenburgPrussia:852366012846309406>", "bp"],
+  alias: ["<:FlagBrandenburgPrussiaBP:1487249033104855253>", "bp"],
   deckModification: {
     0: (d) => {
       return d;
@@ -420,11 +420,11 @@ var habsburg = {
   name: "The Habsburg Monarchy",
   flagImage:
     "images/flags/Habsburg_Monarchy_(Livestock_Colony)_WrinkledFlag.png",
-  emote: "<:FlagHabsburg:852366013638639636>",
+  emote: "<:FlagHabsburgLivestockHLC:1487248949839528076>",
   difficulty: [2, 3, 5, 6, 8, 9, 10],
   panel: "https://imgur.com/GtptfDJ",
   alias: [
-    "<:FlagHabsburg:852366013638639636>",
+    "<:FlagHabsburgLivestockHLC:1487248949839528076>",
     "🐮",
     "monarchy",
     "hlc",

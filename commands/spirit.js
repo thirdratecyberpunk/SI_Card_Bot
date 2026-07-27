@@ -2,6 +2,9 @@
 const { spirits } = require("./spiritNames.js");
 const levenshtein = require("js-levenshtein");
 const globals = require("../globals.js");
+const { PaginatedMessage } = require("@sapphire/discord.js-utilities");
+
+const SPIRITS_PER_PAGE = 12;
 
 module.exports = {
   name: "spirit",
@@ -10,7 +13,7 @@ module.exports = {
   async execute(msg, args) {
     try {
       if (args.length < 1) {
-        throw new Error("Please provide at least 3 letters to query with.");
+        return sendSpiritList(msg);
       }
 
       // Handle result-modifying args
@@ -43,6 +46,25 @@ module.exports = {
   },
   searchForSpirit,
 };
+
+/**
+ * Sends a paginated list of every spirit's name and emoji.
+ */
+function sendSpiritList(msg) {
+  const sorted = [...spirits].sort((a, b) => a.name.localeCompare(b.name));
+  const paginated = new PaginatedMessage();
+
+  for (let i = 0; i < sorted.length; i += SPIRITS_PER_PAGE) {
+    const chunk = sorted.slice(i, i + SPIRITS_PER_PAGE);
+    paginated.addPageEmbed((embed) =>
+      embed
+        .setTitle("Spirits")
+        .setDescription(chunk.map((s) => `${s.name} ${s.emote}`).join("\n")),
+    );
+  }
+
+  return paginated.run(msg);
+}
 
 /**
  * Returns a spirit object when given a string

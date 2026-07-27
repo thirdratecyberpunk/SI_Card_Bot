@@ -812,7 +812,7 @@ var Voice = {
 
 var Wounded = {
   name: "Wounded Waters Bleeding",
-  emote: "<:SpiritWoundedWaters:1139940631414845551>",
+  emote: "<:SpiritWoundedWatersWWB:1487248733266645002>",
   panel: ["https://imgur.com/hWH0aXs", "https://imgur.com/cx2dLde"],
   complexity: 3,
   title: "Wounded",
