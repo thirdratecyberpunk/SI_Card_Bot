@@ -9,6 +9,7 @@ const {
   computeInvaderDeck,
   computeFearDeck,
   getRulesForAdversary,
+  getLossCondition,
 } = require("./AdversaryNames.js");
 const { combineDifficulty } = require("../utils/difficulty.js");
 const {
@@ -81,8 +82,14 @@ module.exports = {
     const leadEsc = leadingAdversary.escalation;
     const suppEsc = supportingAdversary?.escalation ?? null;
 
-    const leadLoss = leadingAdversary.lossCondition;
-    const suppLoss = supportingAdversary?.lossCondition ?? null;
+    const leadLoss = getLossCondition(
+      leadingAdversary,
+      leadingLevel,
+      supportingAdversary ? supportingLevel : null,
+    );
+    const suppLoss = supportingAdversary
+      ? getLossCondition(supportingAdversary, supportingLevel, leadingLevel)
+      : null;
 
     const leadRules = getRulesForAdversary(leadingAdversary, leadingLevel);
     const suppRules = supportingAdversary

@@ -20,7 +20,6 @@ const BORDER_WIDTH = 8;
 
 const FLAG_HEIGHT = 70;
 const FLAG_GAP = 14;
-const FLAG_DIFFICULTY_GAP = 24;
 
 async function loadFlagImage(flagImagePath) {
   if (!flagImagePath) return null;
@@ -326,11 +325,8 @@ async function renderAdversaryCard(data) {
   const flagWidths = flagImages.map(
     (img) => (FLAG_HEIGHT * img.width) / img.height,
   );
-  const flagsTotalWidth = flagWidths.length
+  const flagsBlockWidth = flagWidths.length
     ? flagWidths.reduce((a, b) => a + b, 0) + FLAG_GAP * (flagWidths.length - 1)
-    : 0;
-  const flagsBlockWidth = flagsTotalWidth
-    ? flagsTotalWidth + FLAG_DIFFICULTY_GAP
     : 0;
 
   // --- TEXT MEASUREMENT SETUP ---
@@ -503,7 +499,7 @@ async function renderAdversaryCard(data) {
   ctx.lineWidth = BORDER_WIDTH;
   ctx.strokeRect(0, 0, width, headerHeight);
 
-  // --- HEADER TITLE + DIFFICULTY WITH OVERLAP CHECK ---
+  // --- HEADER TITLE + FLAGS ---
   const headerTitle = (
     `${leadingAdversary.name} ${leadingLevel}` +
     (supportingAdversary
@@ -511,21 +507,15 @@ async function renderAdversaryCard(data) {
       : "")
   ).toUpperCase();
 
-  const difficultyText = `Difficulty ${combinedDifficulty}`;
-
-  ctx.font = `bold 32px ${BODY_FONT_FAMILY}`;
-  const difficultyWidth = ctx.measureText(difficultyText).width;
-
   const leftX = padding;
   const rightMargin = 60;
-  const rightBlockWidth = flagsBlockWidth + difficultyWidth;
-  const rightBlockStartX = width - rightMargin - rightBlockWidth;
-  const rightX = rightBlockStartX + flagsBlockWidth;
+  // Flags sit as close to the header's right edge as the card border allows.
+  const rightBlockStartX = width - padding - flagsBlockWidth;
 
-  const minGap = 40; // minimum gap between end of title and start of the flags/difficulty block
+  const minGap = 40; // minimum gap between end of title and start of the flags block
 
   // Shrink the title font as needed so a long combined title never runs into
-  // the flags/difficulty block, which is always drawn at a fixed position.
+  // the flags, which are always drawn at a fixed position.
   const maxTitleWidth = rightBlockStartX - leftX - minGap;
   const MIN_TITLE_FONT_SIZE = 24;
   let titleFontSize = 40;
@@ -538,15 +528,12 @@ async function renderAdversaryCard(data) {
   }
 
   const titleY = 70;
-  const difficultyYSameLine = 70;
-  const difficultyYSecondLine = 105;
 
   ctx.font = `${titleFontSize}px ${TITLE_FONT_FAMILY}`;
   ctx.fillStyle = "#000";
   ctx.fillText(headerTitle, leftX, titleY);
 
-  // Flags sit just before the difficulty text, in leading-then-supporting order,
-  // vertically centered in the header regardless of which line the difficulty lands on.
+  // Flags sit right-aligned in the header, vertically centered.
   const flagY = (headerHeight - FLAG_HEIGHT) / 2;
   let flagX = rightBlockStartX;
   flagImages.forEach((img, i) => {
@@ -555,35 +542,33 @@ async function renderAdversaryCard(data) {
     flagX += w + FLAG_GAP;
   });
 
-  ctx.font = `bold 32px ${BODY_FONT_FAMILY}`;
+  // --- SUMMARY ROW: Difficulty (left) / Fear Deck (center) / Invader Deck (right) ---
+  ctx.fillStyle = "#000";
 
-  const titleEndX = leftX + titleWidth;
-  const difficultyStartX = rightBlockStartX;
-
-  if (difficultyStartX - titleEndX >= minGap) {
-    // fits on same line without overlap
-    ctx.fillText(difficultyText, rightX, difficultyYSameLine);
-  } else {
-    // move difficulty to second line inside header
-    ctx.fillText(difficultyText, rightX, difficultyYSecondLine);
-  }
-
-  // --- FEAR (left) + INVADER (right) on same line, BELOW header box ---
-  ctx.font = `bold 28px ${BODY_FONT_FAMILY}`;
-  ctx.fillText("Fear Deck:", padding, summaryY);
+  // Difficulty — leftmost
+  ctx.font = `28px ${BODY_FONT_FAMILY}`;
+  const difficultyLabel = "Difficulty";
+  fillBoldText(ctx, difficultyLabel, padding, summaryY);
+  const difficultyLabelWidth = ctx.measureText(difficultyLabel).width;
 
   ctx.font = summaryFont;
-  ctx.fillText(fearSummary, padding + 180, summaryY);
+  const difficultyValueText = `${combinedDifficulty}`;
+  ctx.fillText(difficultyValueText, padding + difficultyLabelWidth + 10, summaryY);
+  const difficultyValueWidth = ctx.measureText(difficultyValueText).width;
+  const difficultyGroupEndX = padding + difficultyLabelWidth + 10 + difficultyValueWidth;
 
-  ctx.font = `bold 28px ${BODY_FONT_FAMILY}`;
+  // Invader Deck — rightmost
+  ctx.font = `28px ${BODY_FONT_FAMILY}`;
   const invaderLabel = "Invader Deck:";
   const invaderLabelWidth = ctx.measureText(invaderLabel).width;
 
+  ctx.font = summaryFont;
   const invaderSummaryWidth = ctx.measureText(invaderSummary).width;
   const invaderLabelX =
     width - rightMargin - invaderLabelWidth - 20 - invaderSummaryWidth;
 
-  ctx.fillText(invaderLabel, invaderLabelX, summaryY);
+  ctx.font = `28px ${BODY_FONT_FAMILY}`;
+  fillBoldText(ctx, invaderLabel, invaderLabelX, summaryY);
 
   ctx.font = summaryFont;
   ctx.fillText(
@@ -591,6 +576,33 @@ async function renderAdversaryCard(data) {
     width - rightMargin - invaderSummaryWidth,
     summaryY,
   );
+
+  // Fear Deck — centered within the free space between Difficulty and
+  // Invader Deck (not the full card width), so a long Invader Deck string
+  // never gets run into.
+  ctx.font = `28px ${BODY_FONT_FAMILY}`;
+  const fearLabel = "Fear Deck:";
+  const fearLabelWidth = ctx.measureText(fearLabel).width;
+
+  ctx.font = summaryFont;
+  const fearSummaryWidth = ctx.measureText(fearSummary).width;
+
+  const fearGroupWidth = fearLabelWidth + 10 + fearSummaryWidth;
+  const middleZoneStart = difficultyGroupEndX + 30;
+  const middleZoneEnd = invaderLabelX - 30;
+  const fearLabelX = Math.max(
+    middleZoneStart,
+    Math.min(
+      middleZoneStart + (middleZoneEnd - middleZoneStart - fearGroupWidth) / 2,
+      middleZoneEnd - fearGroupWidth,
+    ),
+  );
+
+  ctx.font = `28px ${BODY_FONT_FAMILY}`;
+  fillBoldText(ctx, fearLabel, fearLabelX, summaryY);
+
+  ctx.font = summaryFont;
+  ctx.fillText(fearSummary, fearLabelX + fearLabelWidth + 10, summaryY);
 
   // --- LOSS CONDITIONS BOX ---
   const lossY = summaryY + summaryHeight;

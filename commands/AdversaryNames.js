@@ -362,7 +362,6 @@ var france = {
     5: [1, 2, 1],
     6: [1, 2, 2],
   },
-  // TODO: France's loss con is variable, will need to template this
   lossCondition: {
     name: "Sprawling Plantations",
     effect:
@@ -1039,6 +1038,33 @@ function getRulesForAdversary(adversary, maxLevel) {
     }));
 }
 
+/**
+ * Returns the loss condition for an adversary, scaling France's "Sprawling
+ * Plantations" base pool size when played as part of a doubles game (per its
+ * doublesNotes: at France Level 2+, +1 Town per player for each level of the
+ * other Adversary). otherLevel is the other adversary's level, or
+ * null/omitted when solo.
+ */
+function getLossCondition(adversary, level, otherLevel = null) {
+  if (!adversary || !adversary.lossCondition) return null;
+
+  const { name, effect } = adversary.lossCondition;
+
+  if (
+    adversary.title === "france" &&
+    level >= 2 &&
+    typeof otherLevel === "number"
+  ) {
+    const scaledPool = 7 + otherLevel;
+    return {
+      name,
+      effect: effect.replace(/\b7\b/, String(scaledPool)),
+    };
+  }
+
+  return adversary.lossCondition;
+}
+
 // Export registry and helpers
 module.exports = {
   ad,
@@ -1048,4 +1074,5 @@ module.exports = {
   computeFearDeck,
   computeInvaderDeck,
   getRulesForAdversary,
+  getLossCondition,
 };
