@@ -86,6 +86,12 @@ var habsburgmining = {
 Ceaseless Mining: Lands with 3 or more Invaders are Mining lands. In Mining lands:\
 • :TokenDisease: and modifiers to :TokenDisease: affect Ravage Actions as though they were Build Actions.\
 • During the Build Step, Build Cards cause Ravage Actions (instead of Build Actions).",
+      exceptions: [
+        {
+          with: { title: "england", minLevel: 3 },
+          note: "This doesn't interact with England 3 (High Immigration).",
+        },
+      ],
     },
     2: {
       name: "Miners Come From Far and Wide",
@@ -104,6 +110,20 @@ Ceaseless Mining: Lands with 3 or more Invaders are Mining lands. In Mining land
       type: ["setup"],
       effect:
         "Setup: Remove the Stage II 'Coastal Lands' card before randomly choosing Stage II cards. Place the 'Salt Deposits' card in place of the 2nd Stage II card.",
+      exceptions: [
+        {
+          with: { title: "scotland", minLevel: 2 },
+          note: "This doesn't stop Scotland 2 from specially placing the Coastal Lands ('C') card.",
+        },
+        {
+          with: { title: "russia", minLevel: 5 },
+          note: "This does stop the Coastal Lands ('C') card from being a Russia 5 Fear Bomb.",
+        },
+        {
+          with: { title: "scotland", minLevel: 1 },
+          note: "Player option (not yet in the official FAQ): you can choose to limit the Salt Deposits ('S') card the same way the Coastal Lands ('C') card is limited.",
+        },
+      ],
     },
     5: {
       name: "Mining Boom (II)",
@@ -209,6 +229,12 @@ var prussia = {
       type: ["setup"],
       effect:
         "When making the Invader Deck, put 1 of the Stage III cards between Stage I and Stage II.",
+      exceptions: [
+        {
+          with: { any: true },
+          note: "The early Stage III Card this creates still gets hit by a Stage III Escalation (from the Supporting Adversary) — Escalations care about what a card is, not what stage of the game it's currently in.",
+        },
+      ],
     },
     3: {
       name: "Efficient",
@@ -232,6 +258,12 @@ var prussia = {
       name: "Terrifyingly Efficient",
       type: ["setup"],
       effect: "When making the Invader Deck, remove all Stage I cards.",
+      exceptions: [
+        {
+          with: { any: true },
+          note: "This can trigger a Stage III Escalation from the Supporting Adversary during Setup — e.g. even HME's Escalation, since it cares about cards advancing, not specifically the Advance Invader Cards step.",
+        },
+      ],
     },
   },
 };
@@ -396,6 +428,12 @@ var france = {
       type: ["setup"],
       effect:
         "During Setup, on each board add 1 :InvaderTown: to the highest-numbered land without :InvaderTown:. Add 1 :InvaderTown: to land #1.",
+      exceptions: [
+        {
+          with: { any: true },
+          note: "For on-island Setup, place pieces for the Leading Adversary before the Supporting Adversary — on some boards, which lands already have :InvaderTown: when this resolves depends on that order.",
+        },
+      ],
     },
     4: {
       name: "Triangle Trade",
@@ -493,6 +531,20 @@ var habsburg = {
       type: ["build"],
       effect:
         "After the normal Build Step: In each land matching a Build Card, Gather 1 :InvaderTown: from a land not matching a Build Card. (In board/land order.)",
+      exceptions: [
+        {
+          with: { title: "england", minLevel: 3 },
+          note: "RAI, only check the Build Cards in the Build Space — not High Immigration.",
+        },
+        {
+          with: { title: "habsburg_mining", minLevel: 3 },
+          note: "This and HME's Mining Boom (level 3+) happen in an order of player choice.",
+        },
+        {
+          with: { title: "habsburg_mining", minLevel: 4 },
+          note: "Against HME 4's Salt Deposits card: which lands are gathered into is locked in before any gathering happens, but which lands can be gathered from is checked as you go.",
+        },
+      ],
     },
     2: {
       name: "More Rural Than Urban",
@@ -517,6 +569,12 @@ var habsburg = {
       type: ["setup"],
       effect:
         "Before the initial Explore, put the Habsburg Reminder Card under the top 5 Invader Cards. When Revealed, on each board, add 1 :InvaderCity: to a Coastal land without :InvaderCity: and 1 :InvaderTown: to the 3 Inland lands with the fewest :Blight:.",
+      exceptions: [
+        {
+          with: { title: "habsburg_mining", minLevel: 0 },
+          note: "This happens before HME's Escalation (Mining Tunnels).",
+        },
+      ],
     },
     6: {
       name: "Far-Flung Herds",
@@ -597,6 +655,12 @@ var russia = {
       type: ["setup", "ravage"],
       effect:
         "During Setup, on each board, add 1 :TokenBeasts: and 1 :InvaderExplorer: to the highest-numbered land without :InvaderTown:/:InvaderCity:. During Play, :InvaderExplorer: do +1 Damage. When Ravage adds :Blight: to a land (including cascades), Destroy 1 :TokenBeasts: in that land.",
+      exceptions: [
+        {
+          with: { any: true },
+          note: "For on-island Setup, place pieces for the Leading Adversary before the Supporting Adversary — on some boards, which lands already have :InvaderTown:/:InvaderCity: when this resolves depends on that order.",
+        },
+      ],
     },
     2: {
       name: "A Sense for Impending Disaster",
@@ -621,6 +685,16 @@ var russia = {
       type: ["setup"],
       effect:
         "Put an unused Stage II Invader Card under the top 3 Fear Cards, and an unused Stage III Card under the top 7 Fear Cards. When one is revealed, immediately place it in the Build space (face-up).",
+      exceptions: [
+        {
+          with: { title: "england", minLevel: 1 },
+          note: "The Fear Cards placed by this resolve separately and sequentially, so England 1 re-checks its condition for the second card.",
+        },
+        {
+          with: { title: "scotland", minLevel: 3 },
+          note: "The Fear Cards placed by this resolve separately and sequentially, so Scotland 3 re-checks its condition for the second card.",
+        },
+      ],
     },
     6: {
       name: "Pressure for Fast Profit",
@@ -735,6 +809,16 @@ var scotland = {
       type: ["ravage"],
       effect:
         "After a Ravage Action adds :Blight: to a Coastal Land, add 1 :Blight: to that board's Ocean (without cascading). Treat the Ocean as a Coastal Wetland for this rule and for :Blight: removal/movement.",
+      exceptions: [
+        {
+          with: { title: "habsburg_mining", minLevel: 1 },
+          note: "Contrary to what a lot of people think, this doesn't interact with HME 1.",
+        },
+        {
+          with: { title: "habsburg_livestock", minLevel: 0 },
+          note: "Contrary to what a lot of people think, this doesn't interact with HM-LC, regardless of level.",
+        },
+      ],
     },
     6: {
       name: "Exports Fuel Inward Growth",
@@ -792,6 +876,12 @@ var sweden = {
     name: "Swayed by the Invaders",
     effect:
       "After Invaders Explore into each land this Phase, if that land has at least as many Invaders as :Dahan:, replace 1 :Dahan: with 1 :InvaderTown:. Randomly choose one of the land types shown on the card for Stage III escalations.",
+    exceptions: [
+      {
+        with: { title: "russia", minLevel: 5 },
+        note: "This only applies to the Explore Card it's on, so it doesn't do anything on a Russia 5 Fear Bomb.",
+      },
+    ],
   },
   rules: {
     1: {
@@ -799,6 +889,12 @@ var sweden = {
       type: ["ravage"],
       effect:
         "If the Invaders do at least 6 Damage to the land during Ravage, add an extra :Blight:. The additional :Blight: does not destroy Presence or cause cascades.",
+      exceptions: [
+        {
+          with: { title: "habsburg_livestock", minLevel: 0 },
+          note: "Unlike Scotland 5, HM-LC (any level) does interact with this.",
+        },
+      ],
     },
     2: {
       name: "Population Pressure at Home",
@@ -816,6 +912,16 @@ var sweden = {
       type: ["setup"],
       effect:
         "During Setup, after adding all other Invaders, Accelerate the Invader Deck. On each board, add 1 :InvaderTown: to the land of that terrain with the fewest Invaders.",
+      exceptions: [
+        {
+          with: { title: "prussia", minLevel: 5 },
+          note: "This specifically Accelerates the Invader Deck, so it'll skip over Prussia's early Stage III Card — this only kicks in once Prussia is at level 5; the card isn't pulled early before that.",
+        },
+        {
+          with: { any: true },
+          note: "This specifically goes at the very end of Setup, regardless of whether Sweden is the Leading or Supporting Adversary.",
+        },
+      ],
     },
     5: {
       name: "Mining Rush",
@@ -1052,7 +1158,83 @@ function getRulesForAdversary(adversary, maxLevel) {
       name: adversary.rules[i].name,
       effect: adversary.rules[i].effect,
       type: adversary.rules[i].type ?? ["ongoing"],
+      exceptions: adversary.rules[i].exceptions ?? [],
     }));
+}
+
+/**
+ * Whether an exception's `with` condition is satisfied by the other
+ * adversary in a doubles pairing. `{ any: true }` matches any partner at
+ * all (used for exceptions that aren't about one specific adversary);
+ * `{ title, minLevel }` matches a specific adversary at or above a level —
+ * minLevel: 0 matches that adversary at any level, since every level is >= 0.
+ */
+function exceptionApplies(withCondition, partnerAdversary, partnerLevel) {
+  if (!withCondition) return false;
+  if (withCondition.any) return Boolean(partnerAdversary);
+  if (!partnerAdversary) return false;
+  return (
+    partnerAdversary.title === withCondition.title &&
+    partnerLevel >= withCondition.minLevel
+  );
+}
+
+/**
+ * Collects doubles-interaction notes ("exceptions") called out on the
+ * currently active rules/escalations of both adversaries in a pairing.
+ * Each note is anchored on whichever single rule/escalation it's actually
+ * about, and declares which *other* adversary (and level) needs to be in
+ * play for it to be relevant — so a note only surfaces when both halves of
+ * the interaction it describes are actually on the table.
+ * Returns [] for a solo (non-doubles) setup, since these are all pairwise.
+ * Returns array of { source, note }, in leading-then-supporting rule order.
+ */
+function getDoublesNotes({
+  leadingAdversary,
+  leadingLevel,
+  leadRules,
+  supportingAdversary,
+  supportingLevel,
+  suppRules,
+}) {
+  if (!supportingAdversary) return [];
+
+  const notes = [];
+
+  const collect = (entries, partnerAdversary, partnerLevel) => {
+    for (const entry of entries) {
+      for (const exc of entry.exceptions ?? []) {
+        if (exceptionApplies(exc.with, partnerAdversary, partnerLevel)) {
+          notes.push({ source: entry.name, note: exc.note });
+        }
+      }
+    }
+  };
+
+  collect(leadRules, supportingAdversary, supportingLevel);
+  collect(suppRules, leadingAdversary, leadingLevel);
+  collect(
+    [
+      {
+        name: leadingAdversary.escalation?.name,
+        exceptions: leadingAdversary.escalation?.exceptions,
+      },
+    ],
+    supportingAdversary,
+    supportingLevel,
+  );
+  collect(
+    [
+      {
+        name: supportingAdversary.escalation?.name,
+        exceptions: supportingAdversary.escalation?.exceptions,
+      },
+    ],
+    leadingAdversary,
+    leadingLevel,
+  );
+
+  return notes;
 }
 
 /**
@@ -1092,4 +1274,5 @@ module.exports = {
   computeInvaderDeck,
   getRulesForAdversary,
   getLossCondition,
+  getDoublesNotes,
 };

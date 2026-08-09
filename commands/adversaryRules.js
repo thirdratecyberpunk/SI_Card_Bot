@@ -10,6 +10,7 @@ const {
   computeFearDeck,
   getRulesForAdversary,
   getLossCondition,
+  getDoublesNotes,
 } = require("./AdversaryNames.js");
 const { combineDifficulty } = require("../utils/difficulty.js");
 const {
@@ -114,6 +115,15 @@ module.exports = {
       suppRules = excludeSetupRules(suppRules);
     }
 
+    const doublesNotes = getDoublesNotes({
+      leadingAdversary,
+      leadingLevel,
+      leadRules,
+      supportingAdversary,
+      supportingLevel,
+      suppRules,
+    });
+
     // Build output
     const lines = [];
 
@@ -183,6 +193,13 @@ module.exports = {
       }
     }
 
+    if (doublesNotes.length) {
+      lines.push("### Notes");
+      for (const n of doublesNotes) {
+        lines.push(`- **${n.source}:** ${n.note}`);
+      }
+    }
+
     const output = lines.join("\n");
 
     // Always generate PNG using your renderer
@@ -201,6 +218,7 @@ module.exports = {
         suppLoss,
         leadRules,
         suppRules,
+        doublesNotes,
         outputText: output,
       });
 

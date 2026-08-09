@@ -291,6 +291,7 @@ async function renderAdversaryCard(data) {
     suppLoss,
     leadRules,
     suppRules,
+    doublesNotes = [],
     fearDeck,
     invaderDeck,
   } = data;
@@ -466,13 +467,22 @@ async function renderAdversaryCard(data) {
   // No rules to show (e.g. noSetup hid everything) -> the whole box collapses away.
   const rulesHeight = ruleSections.length > 0 ? 80 + rulesInnerHeight : 0;
 
-  // --- ICONS: preload any referenced by the loss/escalation/rules text ---
+  // --- NOTES (doubles interaction call-outs, dynamic height) ---
+  const wrappedNoteGroups = doublesNotes.map((n) =>
+    wrapNamedEffect(`• ${n.source}: `, n.note, width - padding * 2),
+  );
+  const wrappedNotes = wrappedNoteGroups.flatMap((group) => group.lines);
+  const notesHeight =
+    wrappedNoteGroups.length > 0 ? 80 + wrappedNotes.length * 30 : 0;
+
+  // --- ICONS: preload any referenced by the loss/escalation/rules/notes text ---
   const bodyLines = [
     ...(leadLossGroup ? leadLossGroup.lines : []),
     ...(suppLossGroup ? suppLossGroup.lines : []),
     ...leadEscGroup.lines,
     ...(suppEscGroup ? suppEscGroup.lines : []),
     ...wrappedRules,
+    ...wrappedNotes,
   ];
   const neededIconFiles = new Set();
   for (const line of bodyLines) {
@@ -489,7 +499,12 @@ async function renderAdversaryCard(data) {
   const summaryHeight = 40;
 
   const totalHeight =
-    headerHeight + summaryHeight + 40 + lossEscHeight + rulesHeight;
+    headerHeight +
+    summaryHeight +
+    40 +
+    lossEscHeight +
+    rulesHeight +
+    notesHeight;
 
   // --- CREATE CANVAS ---
   const canvas = createCanvas(width, totalHeight);
@@ -802,6 +817,40 @@ async function renderAdversaryCard(data) {
         ctx.stroke();
         sectionY += RULE_SECTION_GAP;
       }
+    });
+  }
+
+  // --- NOTES SECTION (doubles interaction call-outs; omitted when there are none) ---
+  const notesY = rulesY + rulesHeight;
+
+  if (wrappedNoteGroups.length > 0) {
+    ctx.fillStyle = "rgb(235,230,215)";
+    ctx.fillRect(0, notesY, width, notesHeight);
+
+    ctx.strokeStyle = BORDER_COLOR;
+    ctx.lineWidth = BORDER_WIDTH;
+    ctx.strokeRect(0, notesY, width, notesHeight);
+
+    ctx.font = `28px ${BODY_FONT_FAMILY}`;
+    ctx.fillStyle = "#000";
+    fillBoldItalicText(ctx, "Notes", padding, notesY + 40);
+
+    ctx.font = `24px ${BODY_FONT_FAMILY}`;
+    let noteY = notesY + 80;
+    wrappedNoteGroups.forEach((group) => {
+      let noteParenState = false;
+      group.lines.forEach((line, lineIndex) => {
+        noteParenState = drawNamedEffectLine(
+          ctx,
+          line,
+          padding,
+          noteY,
+          group.boldPrefixLength,
+          lineIndex === 0,
+          noteParenState,
+        );
+        noteY += 30;
+      });
     });
   }
 
