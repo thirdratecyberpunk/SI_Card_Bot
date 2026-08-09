@@ -291,6 +291,7 @@ async function renderAdversaryCard(data) {
     suppLoss,
     leadRules,
     suppRules,
+    doublesNotes = [],
     fearDeck,
     invaderDeck,
   } = data;
@@ -301,6 +302,8 @@ async function renderAdversaryCard(data) {
   // No loss condition at all (neither adversary has one) -> the whole box is omitted.
   // An adversary that individually lacks one is simply left out, not shown as "None".
   const hasLossConditions = Boolean(leadLoss) || Boolean(suppLoss);
+  const lossConditionsLabel =
+    Boolean(leadLoss) && Boolean(suppLoss) ? "Loss Conditions" : "Loss Condition";
 
   // --- NULL‑SAFE NORMALIZATION ---
   const safeLeadEsc = leadEsc ?? {
@@ -309,6 +312,7 @@ async function renderAdversaryCard(data) {
   };
 
   const safeSuppEsc = suppEsc ?? null;
+  const escalationsLabel = safeSuppEsc ? "Escalations" : "Escalation";
 
   // --- FLAG IMAGES (leading, then supporting) ---
   const flagImages = (
@@ -327,9 +331,28 @@ async function renderAdversaryCard(data) {
     : 0;
 
   // --- TEXT MEASUREMENT SETUP ---
+  // Matches the 24px font every wrapped body block (loss/escalation/rules/
+  // notes) is actually drawn at — measuring any larger wraps lines earlier
+  // than the smaller draw font needs, leaving the block underfilled.
   const temp = createCanvas(10, 10);
   const measure = temp.getContext("2d");
-  measure.font = `26px ${BODY_FONT_FAMILY}`;
+  measure.font = `24px ${BODY_FONT_FAMILY}`;
+
+  // Measures a line the way it's actually drawn: a ":TokenName:" reference
+  // that resolves to an icon renders as a small fixed-height glyph, not the
+  // literal token text, so measuring the raw string there would badly
+  // overestimate the line's width and wrap well before the block is full.
+  function measureLineWidth(text) {
+    let width = 0;
+    for (const run of extractIconRuns(text)) {
+      if (run.type === "icon") {
+        width += ICON_SIZE + ICON_GAP;
+      } else {
+        width += measure.measureText(run.str).width;
+      }
+    }
+    return width;
+  }
 
   function wrap(text, maxWidth) {
     const words = text.split(" ");
@@ -338,7 +361,7 @@ async function renderAdversaryCard(data) {
 
     for (const w of words) {
       const test = current ? current + " " + w : w;
-      if (measure.measureText(test).width > maxWidth) {
+      if (measureLineWidth(test) > maxWidth) {
         lines.push(current);
         current = w;
       } else {
@@ -360,11 +383,11 @@ async function renderAdversaryCard(data) {
   // A rule can belong to more than one phase (type is an array), in which
   // case it's shown in full under each relevant section.
   const RULE_SECTION_ORDER = [
-    { key: "setup", label: "Setup" },
     { key: "ongoing", label: "Ongoing" },
     { key: "explore", label: "Explore" },
     { key: "build", label: "Build" },
     { key: "ravage", label: "Ravage" },
+    { key: "setup", label: "Setup" },
   ];
 
   const allRules = [...leadRules, ...suppRules];
@@ -466,13 +489,22 @@ async function renderAdversaryCard(data) {
   // No rules to show (e.g. noSetup hid everything) -> the whole box collapses away.
   const rulesHeight = ruleSections.length > 0 ? 80 + rulesInnerHeight : 0;
 
-  // --- ICONS: preload any referenced by the loss/escalation/rules text ---
+  // --- NOTES (doubles interaction call-outs, dynamic height) ---
+  const wrappedNoteGroups = doublesNotes.map((n) =>
+    wrapNamedEffect(`• ${n.source}: `, n.note, width - padding * 2),
+  );
+  const wrappedNotes = wrappedNoteGroups.flatMap((group) => group.lines);
+  const notesHeight =
+    wrappedNoteGroups.length > 0 ? 80 + wrappedNotes.length * 30 : 0;
+
+  // --- ICONS: preload any referenced by the loss/escalation/rules/notes text ---
   const bodyLines = [
     ...(leadLossGroup ? leadLossGroup.lines : []),
     ...(suppLossGroup ? suppLossGroup.lines : []),
     ...leadEscGroup.lines,
     ...(suppEscGroup ? suppEscGroup.lines : []),
     ...wrappedRules,
+    ...wrappedNotes,
   ];
   const neededIconFiles = new Set();
   for (const line of bodyLines) {
@@ -489,7 +521,12 @@ async function renderAdversaryCard(data) {
   const summaryHeight = 40;
 
   const totalHeight =
-    headerHeight + summaryHeight + 40 + lossEscHeight + rulesHeight;
+    headerHeight +
+    summaryHeight +
+    40 +
+    lossEscHeight +
+    rulesHeight +
+    notesHeight;
 
   // --- CREATE CANVAS ---
   const canvas = createCanvas(width, totalHeight);
@@ -625,7 +662,7 @@ async function renderAdversaryCard(data) {
 
     ctx.font = `28px ${BODY_FONT_FAMILY}`;
     ctx.fillStyle = "#000";
-    fillBoldItalicText(ctx, "Loss Conditions", padding, lossY + 40);
+    fillBoldItalicText(ctx, lossConditionsLabel, padding, lossY + 40);
 
     ctx.font = `24px ${BODY_FONT_FAMILY}`;
     let lossOffset = lossY + 80;
@@ -663,7 +700,7 @@ async function renderAdversaryCard(data) {
 
   ctx.font = `28px ${BODY_FONT_FAMILY}`;
   ctx.fillStyle = "#000";
-  fillBoldItalicText(ctx, "Escalations", escX + padding, escY + 40);
+  fillBoldItalicText(ctx, escalationsLabel, escX + padding, escY + 40);
 
   ctx.font = `24px ${BODY_FONT_FAMILY}`;
   let escOffset = escY + 80;
@@ -802,6 +839,40 @@ async function renderAdversaryCard(data) {
         ctx.stroke();
         sectionY += RULE_SECTION_GAP;
       }
+    });
+  }
+
+  // --- NOTES SECTION (doubles interaction call-outs; omitted when there are none) ---
+  const notesY = rulesY + rulesHeight;
+
+  if (wrappedNoteGroups.length > 0) {
+    ctx.fillStyle = "rgb(235,230,215)";
+    ctx.fillRect(0, notesY, width, notesHeight);
+
+    ctx.strokeStyle = BORDER_COLOR;
+    ctx.lineWidth = BORDER_WIDTH;
+    ctx.strokeRect(0, notesY, width, notesHeight);
+
+    ctx.font = `28px ${BODY_FONT_FAMILY}`;
+    ctx.fillStyle = "#000";
+    fillBoldItalicText(ctx, "Notes", padding, notesY + 40);
+
+    ctx.font = `24px ${BODY_FONT_FAMILY}`;
+    let noteY = notesY + 80;
+    wrappedNoteGroups.forEach((group) => {
+      let noteParenState = false;
+      group.lines.forEach((line, lineIndex) => {
+        noteParenState = drawNamedEffectLine(
+          ctx,
+          line,
+          padding,
+          noteY,
+          group.boldPrefixLength,
+          lineIndex === 0,
+          noteParenState,
+        );
+        noteY += 30;
+      });
     });
   }
 

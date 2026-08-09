@@ -1,10 +1,16 @@
 # docker compose used for running the bot locally (i.e. development purposes)
 services:
   si-card-bot:
-    build: .
+    build:
+      context: .
+      target: dev
     image: si-card-bot:local
     volumes:
       - "./:/usr/src/app"
+      # Keep the container's own compiled node_modules (built for its OS/arch)
+      # instead of letting the bind mount above shadow it with the host's,
+      # which would break native deps like canvas.
+      - "/usr/src/app/node_modules"
     env_file:
       - .env
     expose:

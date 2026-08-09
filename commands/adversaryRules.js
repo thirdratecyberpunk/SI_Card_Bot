@@ -10,6 +10,7 @@ const {
   computeFearDeck,
   getRulesForAdversary,
   getLossCondition,
+  getDoublesNotes,
 } = require("./AdversaryNames.js");
 const { combineDifficulty } = require("../utils/difficulty.js");
 const {
@@ -114,6 +115,15 @@ module.exports = {
       suppRules = excludeSetupRules(suppRules);
     }
 
+    const doublesNotes = getDoublesNotes({
+      leadingAdversary,
+      leadingLevel,
+      leadRules,
+      supportingAdversary,
+      supportingLevel,
+      suppRules,
+    });
+
     // Build output
     const lines = [];
 
@@ -139,7 +149,7 @@ module.exports = {
     lines.push("### Fear Deck");
     lines.push(`(${fearDeck[0]}/${fearDeck[1]}/${fearDeck[2]})`);
 
-    lines.push("### Escalations");
+    lines.push(suppEsc ? "### Escalations" : "### Escalation");
     lines.push(
       `- **Leading (Stage II):** **${leadEsc.name}** — ${leadEsc.effect}`,
     );
@@ -150,7 +160,7 @@ module.exports = {
     }
 
     if (leadLoss || suppLoss) {
-      lines.push("### Loss Conditions");
+      lines.push(leadLoss && suppLoss ? "### Loss Conditions" : "### Loss Condition");
       if (leadLoss) lines.push(`- **${leadLoss.name}** — ${leadLoss.effect}`);
       if (suppLoss) lines.push(`- **${suppLoss.name}** — ${suppLoss.effect}`);
     }
@@ -183,6 +193,13 @@ module.exports = {
       }
     }
 
+    if (doublesNotes.length) {
+      lines.push("### Notes");
+      for (const n of doublesNotes) {
+        lines.push(`- **${n.source}:** ${n.note}`);
+      }
+    }
+
     const output = lines.join("\n");
 
     // Always generate PNG using your renderer
@@ -201,6 +218,7 @@ module.exports = {
         suppLoss,
         leadRules,
         suppRules,
+        doublesNotes,
         outputText: output,
       });
 
