@@ -807,6 +807,12 @@ var scotland = {
       type: ["setup"],
       effect:
         'During Setup, add 1 :InvaderCity: to land #2. Place "Coastal Lands" as the 3rd Stage II card, and move the two Stage II Cards above it up by one.',
+      exceptions: [
+        {
+          with: { any: true },
+          note: "If the other Adversary's Setup instructions would add :InvaderCity: to a Coastal land other than land #2, instead add the :InvaderCity: to an adjacent Inland land.",
+        },
+      ],
     },
     3: {
       name: "Chart the Coastline",
@@ -843,8 +849,6 @@ var scotland = {
         "After the Ravage step, add 1 :InvaderTown: to each Inland land that matches a Ravage card and is within 1 Range of :InvaderTown:/:InvaderCity:.",
     },
   },
-  doublesNotes:
-    "If the other Adversary's Setup instructions would add :InvaderCity: to a Coastal land other than land #2, instead add the :InvaderCity: to an adjacent Inland land.",
 };
 
 var sweden = {
