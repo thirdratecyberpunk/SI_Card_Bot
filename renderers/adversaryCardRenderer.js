@@ -335,6 +335,22 @@ async function renderAdversaryCard(data) {
   const measure = temp.getContext("2d");
   measure.font = `24px ${BODY_FONT_FAMILY}`;
 
+  // Measures a line the way it's actually drawn: a ":TokenName:" reference
+  // that resolves to an icon renders as a small fixed-height glyph, not the
+  // literal token text, so measuring the raw string there would badly
+  // overestimate the line's width and wrap well before the block is full.
+  function measureLineWidth(text) {
+    let width = 0;
+    for (const run of extractIconRuns(text)) {
+      if (run.type === "icon") {
+        width += ICON_SIZE + ICON_GAP;
+      } else {
+        width += measure.measureText(run.str).width;
+      }
+    }
+    return width;
+  }
+
   function wrap(text, maxWidth) {
     const words = text.split(" ");
     const lines = [];
@@ -342,7 +358,7 @@ async function renderAdversaryCard(data) {
 
     for (const w of words) {
       const test = current ? current + " " + w : w;
-      if (measure.measureText(test).width > maxWidth) {
+      if (measureLineWidth(test) > maxWidth) {
         lines.push(current);
         current = w;
       } else {
