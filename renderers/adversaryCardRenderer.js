@@ -302,6 +302,8 @@ async function renderAdversaryCard(data) {
   // No loss condition at all (neither adversary has one) -> the whole box is omitted.
   // An adversary that individually lacks one is simply left out, not shown as "None".
   const hasLossConditions = Boolean(leadLoss) || Boolean(suppLoss);
+  const lossConditionsLabel =
+    Boolean(leadLoss) && Boolean(suppLoss) ? "Loss Conditions" : "Loss Condition";
 
   // --- NULL‑SAFE NORMALIZATION ---
   const safeLeadEsc = leadEsc ?? {
@@ -310,6 +312,7 @@ async function renderAdversaryCard(data) {
   };
 
   const safeSuppEsc = suppEsc ?? null;
+  const escalationsLabel = safeSuppEsc ? "Escalations" : "Escalation";
 
   // --- FLAG IMAGES (leading, then supporting) ---
   const flagImages = (
@@ -659,7 +662,7 @@ async function renderAdversaryCard(data) {
 
     ctx.font = `28px ${BODY_FONT_FAMILY}`;
     ctx.fillStyle = "#000";
-    fillBoldItalicText(ctx, "Loss Conditions", padding, lossY + 40);
+    fillBoldItalicText(ctx, lossConditionsLabel, padding, lossY + 40);
 
     ctx.font = `24px ${BODY_FONT_FAMILY}`;
     let lossOffset = lossY + 80;
@@ -697,7 +700,7 @@ async function renderAdversaryCard(data) {
 
   ctx.font = `28px ${BODY_FONT_FAMILY}`;
   ctx.fillStyle = "#000";
-  fillBoldItalicText(ctx, "Escalations", escX + padding, escY + 40);
+  fillBoldItalicText(ctx, escalationsLabel, escX + padding, escY + 40);
 
   ctx.font = `24px ${BODY_FONT_FAMILY}`;
   let escOffset = escY + 80;
