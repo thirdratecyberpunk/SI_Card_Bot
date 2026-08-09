@@ -1,0 +1,34 @@
+{
+  "name": "SI Card Bot",
+  "dockerComposeFile": ["../docker-compose.dev.yml"],
+  "service": "si-card-bot",
+  "workspaceFolder": "/usr/src/app",
+  "shutdownAction": "stopCompose",
+
+  // node_modules already installed in the image (with devDependencies) at
+  // build time; this just keeps it in sync if package.json changes without
+  // a full rebuild.
+  "postCreateCommand": "npm install",
+
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "Health endpoint",
+      "onAutoForward": "silent"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "orta.vscode-jest"
+      ],
+      "settings": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+      }
+    }
+  }
+}
