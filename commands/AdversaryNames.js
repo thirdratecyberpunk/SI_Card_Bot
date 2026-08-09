@@ -366,12 +366,22 @@ var england = {
       type: ["ongoing"],
       effect: ":InvaderTown:/:InvaderCity: have +1 Health.",
     },
-    6: {
-      name: "Independent Resolve",
-      type: ["setup", "build"],
-      effect:
-        "During Setup, add an additional 1 :TokenFear: to the Fear Pool per player in the game. During any Invader Phase where you resolve no Fear Cards, perform the Build from High Immigration twice. (This has no effect if no card is on the extra Build slot.)",
-    },
+    // Independent Resolve has a Setup clause and an unrelated Build clause,
+    // so it's split rather than duplicating the full text under both.
+    6: [
+      {
+        name: "Independent Resolve",
+        type: ["setup"],
+        effect:
+          "During Setup, add an additional 1 :TokenFear: to the Fear Pool per player in the game.",
+      },
+      {
+        name: "Independent Resolve",
+        type: ["build"],
+        effect:
+          "During any Invader Phase where you resolve no Fear Cards, perform the Build from High Immigration twice. (This has no effect if no card is on the extra Build slot.)",
+      },
+    ],
   },
 };
 
@@ -433,12 +443,22 @@ var france = {
       effect:
         "Except during Setup: After Invaders successfully Explore into a land which had no :InvaderTown:/:InvaderCity:, add 1 :InvaderExplorer: there.",
     },
-    2: {
-      name: "Slave Labor",
-      type: ["setup", "build"],
-      effect:
-        'During Setup, put the "Slave Rebellion" event under the top 3 cards of the Event Deck. After Invaders Build in a land with 2 :InvaderExplorer: or more, replace all but 1 :InvaderExplorer: there with an equal number of :InvaderTown:.',
-    },
+    // Two unrelated clauses (event setup vs. a Build trigger), so split
+    // rather than duplicating the full text under both Setup and Build.
+    2: [
+      {
+        name: "Slave Labor",
+        type: ["setup"],
+        effect:
+          'During Setup, put the "Slave Rebellion" event under the top 3 cards of the Event Deck.',
+      },
+      {
+        name: "Slave Labor",
+        type: ["build"],
+        effect:
+          "After Invaders Build in a land with 2 :InvaderExplorer: or more, replace all but 1 :InvaderExplorer: there with an equal number of :InvaderTown:.",
+      },
+    ],
     3: {
       name: "Early Plantation",
       type: ["setup"],
@@ -562,12 +582,22 @@ var habsburg = {
         },
       ],
     },
-    2: {
-      name: "More Rural Than Urban",
-      type: ["setup", "build"],
-      effect:
-        "During Setup, on each board, add 1 :InvaderTown: to land #2 and 1 :InvaderTown: to the highest-numbered land without Setup symbols. During Play, when Invaders would Build 1 :InvaderCity: in an Inland land, they instead Build 2 :InvaderTown:.",
-    },
+    // Two unrelated clauses (Setup placement vs. a Build substitution), so
+    // split rather than duplicating the full text under both Setup and Build.
+    2: [
+      {
+        name: "More Rural Than Urban",
+        type: ["setup"],
+        effect:
+          "During Setup, on each board, add 1 :InvaderTown: to land #2 and 1 :InvaderTown: to the highest-numbered land without Setup symbols.",
+      },
+      {
+        name: "More Rural Than Urban",
+        type: ["build"],
+        effect:
+          "During Play, when Invaders would Build 1 :InvaderCity: in an Inland land, they instead Build 2 :InvaderTown:.",
+      },
+    ],
     3: {
       name: "Fast Spread",
       type: ["setup"],
@@ -666,18 +696,34 @@ var russia = {
       "On each board: Add 2 :InvaderExplorer: (total) among lands with :TokenBeasts:s. If you can't, instead add 2 :InvaderExplorer: among lands with :TokenBeasts: on a different board.",
   },
   rules: {
-    1: {
-      name: "Hunters Bring Home Shell and Hide",
-      type: ["setup", "ravage"],
-      effect:
-        "During Setup, on each board, add 1 :TokenBeasts: and 1 :InvaderExplorer: to the highest-numbered land without :InvaderTown:/:InvaderCity:. During Play, :InvaderExplorer: do +1 Damage. When Ravage adds :Blight: to a land (including cascades), Destroy 1 :TokenBeasts: in that land.",
-      exceptions: [
-        {
-          with: { any: true },
-          note: "For on-island Setup, place pieces for the Leading Adversary before the Supporting Adversary — on some boards, which lands already have :InvaderTown:/:InvaderCity: when this resolves depends on that order.",
-        },
-      ],
-    },
+    // Setup placement, the ongoing +1 Damage buff, and the Ravage-triggered
+    // Beast destruction are three distinct clauses, so this is split rather
+    // than duplicating all three under both Setup and Ravage.
+    1: [
+      {
+        name: "Hunters Bring Home Shell and Hide",
+        type: ["setup"],
+        effect:
+          "During Setup, on each board, add 1 :TokenBeasts: and 1 :InvaderExplorer: to the highest-numbered land without :InvaderTown:/:InvaderCity:.",
+        exceptions: [
+          {
+            with: { any: true },
+            note: "For on-island Setup, place pieces for the Leading Adversary before the Supporting Adversary — on some boards, which lands already have :InvaderTown:/:InvaderCity: when this resolves depends on that order.",
+          },
+        ],
+      },
+      {
+        name: "Hunters Bring Home Shell and Hide",
+        type: ["ongoing"],
+        effect: ":InvaderExplorer: do +1 Damage.",
+      },
+      {
+        name: "Hunters Bring Home Shell and Hide",
+        type: ["ravage"],
+        effect:
+          "When Ravage adds :Blight: to a land (including cascades), Destroy 1 :TokenBeasts: in that land.",
+      },
+    ],
     2: {
       name: "A Sense for Impending Disaster",
       type: ["ongoing"],

@@ -328,9 +328,12 @@ async function renderAdversaryCard(data) {
     : 0;
 
   // --- TEXT MEASUREMENT SETUP ---
+  // Matches the 24px font every wrapped body block (loss/escalation/rules/
+  // notes) is actually drawn at — measuring any larger wraps lines earlier
+  // than the smaller draw font needs, leaving the block underfilled.
   const temp = createCanvas(10, 10);
   const measure = temp.getContext("2d");
-  measure.font = `26px ${BODY_FONT_FAMILY}`;
+  measure.font = `24px ${BODY_FONT_FAMILY}`;
 
   function wrap(text, maxWidth) {
     const words = text.split(" ");
