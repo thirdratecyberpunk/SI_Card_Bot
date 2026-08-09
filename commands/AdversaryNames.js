@@ -108,6 +108,8 @@ Ceaseless Mining: Lands with 3 or more Invaders are Mining lands. In Mining land
     5: {
       name: "Mining Boom (II)",
       type: ["build"],
+      // Supersedes rule 3 (Mining Boom (I)) rather than stacking with it.
+      replaces: 3,
       effect:
         "Instead of Mining Boom (I), after the Build Step, on each board: Choose a land with :InvaderExplorer:. Build there, then Upgrade 1 :InvaderExplorer:. (Build normally in a Mining land.)",
     },
@@ -138,14 +140,14 @@ var prussia = {
     // “Move the bottom-most Stage III card just
     // below the bottom-most Stage I card.”
     2: (d) => {
-      // find the index of the bottom most stage 3 card
+      // find the index of the bottom most Stage III card
       const bottomStage3Index = d.findLastIndex((card) => card.stage === 3);
-      // find the index of the bottom most stage 1 card
+      // find the index of the bottom most Stage I card
       const bottomStage1Index = d.findLastIndex((card) => card.stage === 1);
-      // pop the bottom most stage 3 card off and move it to
-      // the index of the bottom most stage 1 card + 1
+      // pop the bottom most Stage III card off and move it to
+      // the index of the bottom most Stage I card + 1
       if (bottomStage3Index == -1) {
-        throw new Error("Stage 3 card not found, cannot apply Prussia 2");
+        throw new Error("Stage III card not found, cannot apply Prussia 2");
       }
       const stage3Card = d.splice(bottomStage3Index, 1)[0];
       d.splice(bottomStage1Index + 1, 0, stage3Card);
@@ -306,6 +308,9 @@ var england = {
     4: {
       name: "High Immigration (full)",
       type: ["build"],
+      // Supersedes rule 3 (High Immigration (I)); the tile no longer gets
+      // removed, so the original wording no longer applies.
+      replaces: 3,
       effect: "The extra Build tile remains out the entire game.",
     },
     5: {
@@ -367,11 +372,11 @@ var france = {
     effect:
       "Before Setup, return all but 7 :InvaderTown: per player to the box. Invaders win if you ever cannot place a :InvaderTown:.",
   },
-  // TODO: need to handle stage 3 escalation effects
+  // TODO: need to handle Stage III escalation effects
   escalation: {
     name: "Demand for New Cash Crops",
     effect:
-      "After Exploring, on each board, pick a land of the shown terrain. If it has :InvaderTown:/:InvaderCity:, add 1 :Blight:. Otherwise, add 1 :InvaderTown:. Randomly choose one of the land types shown on the card for Stage 3 escalations.",
+      "After Exploring, on each board, pick a land of the shown terrain. If it has :InvaderTown:/:InvaderCity:, add 1 :Blight:. Otherwise, add 1 :InvaderTown:. Randomly choose one of the land types shown on the card for Stage III escalations.",
   },
   rules: {
     1: {
@@ -662,12 +667,12 @@ var scotland = {
       return d;
     },
     4: (d) => {
-      // replaces the last stage 1 card with the bottom stage 3 card
+      // replaces the last Stage I card with the bottom Stage III card
       const index = d.findLastIndex((card) => card.stage === 1);
       if (index !== -1) {
         const stage3index = d.findLastIndex((card) => card.stage === 3);
         if (stage3index > -1) {
-          // replaces the last stage 1 card with the last stage 3 card
+          // replaces the last Stage I card with the last Stage III card
           d[index] = d.splice(stage3index, 1).shift();
         }
       }
@@ -786,7 +791,7 @@ var sweden = {
   escalation: {
     name: "Swayed by the Invaders",
     effect:
-      "After Invaders Explore into each land this Phase, if that land has at least as many Invaders as :Dahan:, replace 1 :Dahan: with 1 :InvaderTown:. Randomly choose one of the land types shown on the card for Stage 3 escalations.",
+      "After Invaders Explore into each land this Phase, if that land has at least as many Invaders as :Dahan:, replace 1 :Dahan: with 1 :InvaderTown:. Randomly choose one of the land types shown on the card for Stage III escalations.",
   },
   rules: {
     1: {
@@ -1026,9 +1031,21 @@ function computeInvaderDeck(
 function getRulesForAdversary(adversary, maxLevel) {
   if (!adversary || !adversary.rules) return [];
 
-  return Object.keys(adversary.rules)
+  const applicableIndices = Object.keys(adversary.rules)
     .map(Number)
-    .filter((i) => i <= maxLevel)
+    .filter((i) => i <= maxLevel);
+
+  // A rule can declare `replaces: <index>` to supersede an earlier rule
+  // (e.g. England's "High Immigration (full)" replaces "High Immigration
+  // (I)"). Once the replacing rule is active, hide the one it replaces.
+  const replacedIndices = new Set(
+    applicableIndices
+      .map((i) => adversary.rules[i].replaces)
+      .filter((r) => r !== undefined),
+  );
+
+  return applicableIndices
+    .filter((i) => !replacedIndices.has(i))
     .sort((a, b) => a - b)
     .map((i) => ({
       index: i,

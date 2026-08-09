@@ -38,7 +38,7 @@ class Deck {
   /**
    * "Accelerates" a deck -> i.e returns the deck after Discarding the topmost card of
    * the lowest Invader Stage remaining in the deck.
-   * TODO: technically a deck of all stage 3s can be accelerated, should
+   * TODO: technically a deck of all Stage IIIs can be accelerated, should
    * change the logic to find the first index of the lowest stage but
    * this can be done when acceleration calculation is more required
    * @returns
