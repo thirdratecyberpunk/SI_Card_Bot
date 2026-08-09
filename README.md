@@ -33,6 +33,24 @@ uses the same `docker-compose.dev.yml` setup under `.devcontainer/`, giving
 you an integrated terminal/debugger inside the container with the bot
 already running via nodemon.
 
+### Running tests
+
+The test suite (Jest) covers the deck/fear-deck calculations and the
+adversary rules/doubles-notes logic in `commands/AdversaryNames.js`. It runs
+against plain Node, no Docker required:
+
+- `npm install`
+- `npm test`
+
+To run a single file or filter by test name (useful while iterating):
+
+- `npx jest tests/doublesNotes.test.js`
+- `npx jest -t "Sweden 4"`
+
+If you're working inside the dev container (see above), run the same
+commands there instead — `npm install` already ran during the image build,
+so `npm test` alone is usually enough.
+
 ### Bot Commands
 
 - -search [search words]

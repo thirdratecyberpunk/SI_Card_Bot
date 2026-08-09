@@ -149,7 +149,7 @@ module.exports = {
     lines.push("### Fear Deck");
     lines.push(`(${fearDeck[0]}/${fearDeck[1]}/${fearDeck[2]})`);
 
-    lines.push("### Escalations");
+    lines.push(suppEsc ? "### Escalations" : "### Escalation");
     lines.push(
       `- **Leading (Stage II):** **${leadEsc.name}** — ${leadEsc.effect}`,
     );
@@ -160,7 +160,7 @@ module.exports = {
     }
 
     if (leadLoss || suppLoss) {
-      lines.push("### Loss Conditions");
+      lines.push(leadLoss && suppLoss ? "### Loss Conditions" : "### Loss Condition");
       if (leadLoss) lines.push(`- **${leadLoss.name}** — ${leadLoss.effect}`);
       if (suppLoss) lines.push(`- **${suppLoss.name}** — ${suppLoss.effect}`);
     }
