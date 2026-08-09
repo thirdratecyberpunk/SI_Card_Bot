@@ -361,11 +361,11 @@ async function renderAdversaryCard(data) {
   // A rule can belong to more than one phase (type is an array), in which
   // case it's shown in full under each relevant section.
   const RULE_SECTION_ORDER = [
-    { key: "setup", label: "Setup" },
     { key: "ongoing", label: "Ongoing" },
     { key: "explore", label: "Explore" },
     { key: "build", label: "Build" },
     { key: "ravage", label: "Ravage" },
+    { key: "setup", label: "Setup" },
   ];
 
   const allRules = [...leadRules, ...suppRules];
