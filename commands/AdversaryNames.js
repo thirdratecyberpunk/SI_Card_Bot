@@ -881,6 +881,10 @@ var sweden = {
         with: { title: "russia", minLevel: 5 },
         note: "This only applies to the Explore Card it's on, so it doesn't do anything on a Russia 5 Fear Bomb.",
       },
+      {
+        with: { title: "france", minLevel: 6 },
+        note: "This and France 6 (Persistent Explorers) trigger at the same time; the order is broken by player choice.",
+      },
     ],
   },
   rules: {
