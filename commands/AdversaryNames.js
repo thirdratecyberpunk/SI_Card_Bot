@@ -78,21 +78,37 @@ var habsburgmining = {
       "After Advancing Invader Cards: On each board, Explore in 2 lands whose terrains don't match a Ravage or Build Card (no source required).",
   },
   rules: {
-    1: {
-      name: "Avarice Rewarded",
-      type: ["ravage", "build"],
-      effect:
-        "When :Blight: added by a Ravage Action would cascade, instead Upgrade 1 :InvaderExplorer:/:InvaderTown: (before :Dahan: counterattack.)\
-Ceaseless Mining: Lands with 3 or more Invaders are Mining lands. In Mining lands:\
-• :TokenDisease: and modifiers to :TokenDisease: affect Ravage Actions as though they were Build Actions.\
-• During the Build Step, Build Cards cause Ravage Actions (instead of Build Actions).",
-      exceptions: [
-        {
-          with: { title: "england", minLevel: 3 },
-          note: "This doesn't interact with England 3 (High Immigration).",
-        },
-      ],
-    },
+    // Avarice Rewarded and Ceaseless Mining are two distinct named rules
+    // sharing level 1, and Ceaseless Mining itself touches both the Ravage
+    // and Build Steps — so this level is an array of rule entries (one per
+    // named rule/phase combination) rather than one rule stuffed with both
+    // names and phases' text.
+    1: [
+      {
+        name: "Avarice Rewarded",
+        type: ["ravage"],
+        effect:
+          "When :Blight: added by a Ravage Action would cascade, instead Upgrade 1 :InvaderExplorer:/:InvaderTown: (before :Dahan: counterattack.)",
+      },
+      {
+        name: "Ceaseless Mining",
+        type: ["ravage"],
+        effect:
+          "Lands with 3 or more Invaders are Mining lands. In Mining lands, :TokenDisease: and modifiers to :TokenDisease: affect Ravage Actions as though they were Build Actions.",
+      },
+      {
+        name: "Ceaseless Mining",
+        type: ["build"],
+        effect:
+          "Lands with 3 or more Invaders are Mining lands. During the Build Step, Build Cards cause Ravage Actions (instead of Build Actions) in Mining lands.",
+        exceptions: [
+          {
+            with: { title: "england", minLevel: 3 },
+            note: "This doesn't interact with England 3 (High Immigration).",
+          },
+        ],
+      },
+    ],
     2: {
       name: "Miners Come From Far and Wide",
       type: ["setup"],
@@ -1132,6 +1148,13 @@ function computeInvaderDeck(
   return deck;
 }
 
+// A rules[level] entry is normally a single rule object, but can be an array
+// of rule objects when one level bundles multiple phase-specific rules (e.g.
+// HME's "Avarice Rewarded" has separate Ravage- and Build-Step clauses).
+function asRuleArray(entry) {
+  return Array.isArray(entry) ? entry : [entry];
+}
+
 /**
  * Extract rules for an adversary up to a given difficulty level.
  * Returns array of { index, name, effect, type } sorted by index.
@@ -1149,21 +1172,25 @@ function getRulesForAdversary(adversary, maxLevel) {
   // (e.g. England's "High Immigration (full)" replaces "High Immigration
   // (I)"). Once the replacing rule is active, hide the one it replaces.
   const replacedIndices = new Set(
-    applicableIndices
-      .map((i) => adversary.rules[i].replaces)
-      .filter((r) => r !== undefined),
+    applicableIndices.flatMap((i) =>
+      asRuleArray(adversary.rules[i])
+        .map((r) => r.replaces)
+        .filter((r) => r !== undefined),
+    ),
   );
 
   return applicableIndices
     .filter((i) => !replacedIndices.has(i))
     .sort((a, b) => a - b)
-    .map((i) => ({
-      index: i,
-      name: adversary.rules[i].name,
-      effect: adversary.rules[i].effect,
-      type: adversary.rules[i].type ?? ["ongoing"],
-      exceptions: adversary.rules[i].exceptions ?? [],
-    }));
+    .flatMap((i) =>
+      asRuleArray(adversary.rules[i]).map((r) => ({
+        index: i,
+        name: r.name,
+        effect: r.effect,
+        type: r.type ?? ["ongoing"],
+        exceptions: r.exceptions ?? [],
+      })),
+    );
 }
 
 /**
