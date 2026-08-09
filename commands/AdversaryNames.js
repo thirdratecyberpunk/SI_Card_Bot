@@ -295,7 +295,7 @@ var england = {
       name: "Criminals and Malcontents",
       type: ["setup"],
       effect:
-        "During Setup, on each board add 1 :InvaderTown: to land #1 and 1 Town to land #2.",
+        "During Setup, on each board add 1 :InvaderCity: to land #1 and 1 :InvaderTown: to land #2.",
     },
     3: {
       name: "High Immigration (I)",
