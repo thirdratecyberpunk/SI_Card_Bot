@@ -144,10 +144,11 @@ var habsburgmining = {
     5: {
       name: "Mining Boom (II)",
       type: ["build"],
-      // Supersedes rule 3 (Mining Boom (I)) rather than stacking with it.
+      // Supersedes rule 3 (Mining Boom (I)); written standalone since it can
+      // appear on the card without rule 3 ever having been shown.
       replaces: 3,
       effect:
-        "Instead of Mining Boom (I), after the Build Step, on each board: Choose a land with :InvaderExplorer:. Build there, then Upgrade 1 :InvaderExplorer:. (Build normally in a Mining land.)",
+        "After the Build Step, on each board: Choose a land with :InvaderExplorer:. Build there, then Upgrade 1 :InvaderExplorer:. (Build normally in a Mining land.)",
     },
     6: {
       name: "The Empire Ascendant",
@@ -356,10 +357,11 @@ var england = {
     4: {
       name: "High Immigration (full)",
       type: ["build"],
-      // Supersedes rule 3 (High Immigration (I)); the tile no longer gets
-      // removed, so the original wording no longer applies.
+      // Supersedes rule 3 (High Immigration (I)); written standalone since
+      // it can appear on the card without rule 3 ever having been shown.
       replaces: 3,
-      effect: "The extra Build tile remains out the entire game.",
+      effect:
+        'Put the "High Immigration" tile on the Invader board, to the left of "Ravage". The Invaders take this Build action each Invader phase before Ravaging. Cards slide left from Ravage to it, and from it to the discard pile. The tile remains out the entire game.',
     },
     5: {
       name: "Local Autonomy",
