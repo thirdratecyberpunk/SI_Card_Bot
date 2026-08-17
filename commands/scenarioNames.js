@@ -1,12 +1,11 @@
 var blitz = {
-    name: "Blitz",
-    front: "front",
-    back: "back",
-    difficulty: "0",
-    link: "https://i.imgur.com/l9LsFb7.png" ,
-    linkBack: "https://i.imgur.com/rbm2vox" 
-
-}
+  name: "Blitz",
+  front: "front",
+  back: "back",
+  difficulty: "0",
+  link: "https://i.imgur.com/l9LsFb7.png",
+  linkBack: "https://i.imgur.com/rbm2vox",
+};
 
 var GtIH = {
   name: "Guard the Isle's Heart",

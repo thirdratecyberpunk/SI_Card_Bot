@@ -240,7 +240,15 @@ function drawRichLine(ctx, text, x, y, startInParen) {
 
 // Draws one line of a "{Name}: effect" / "{Name} — effect" group, bolding the
 // name prefix on the first line only. Returns the paren state for the next line.
-function drawNamedEffectLine(ctx, line, x, y, boldPrefixLength, isFirstLine, parenState) {
+function drawNamedEffectLine(
+  ctx,
+  line,
+  x,
+  y,
+  boldPrefixLength,
+  isFirstLine,
+  parenState,
+) {
   if (isFirstLine && boldPrefixLength > 0) {
     const boldLen = Math.min(boldPrefixLength, line.length);
     const namePart = line.slice(0, boldLen);
@@ -268,7 +276,13 @@ function drawEscalationNameEffect(ctx, text, x, y, escName) {
     fillBoldText(ctx, namePart, cursorX, y);
     cursorX += ctx.measureText(namePart).width;
 
-    return drawRichLine(ctx, text.slice(combinedPrefix.length), cursorX, y, false);
+    return drawRichLine(
+      ctx,
+      text.slice(combinedPrefix.length),
+      cursorX,
+      y,
+      false,
+    );
   }
   return drawRichLine(ctx, text, x, y, false);
 }
@@ -303,7 +317,9 @@ async function renderAdversaryCard(data) {
   // An adversary that individually lacks one is simply left out, not shown as "None".
   const hasLossConditions = Boolean(leadLoss) || Boolean(suppLoss);
   const lossConditionsLabel =
-    Boolean(leadLoss) && Boolean(suppLoss) ? "Loss Conditions" : "Loss Condition";
+    Boolean(leadLoss) && Boolean(suppLoss)
+      ? "Loss Conditions"
+      : "Loss Condition";
 
   // --- NULL‑SAFE NORMALIZATION ---
   const safeLeadEsc = leadEsc ?? {
@@ -517,7 +533,9 @@ async function renderAdversaryCard(data) {
   await preloadIcons([...neededIconFiles]);
 
   // --- STACKING ORDER ---
-  const lossEscHeight = hasLossConditions ? Math.max(lossHeight, escHeight) : escHeight;
+  const lossEscHeight = hasLossConditions
+    ? Math.max(lossHeight, escHeight)
+    : escHeight;
   const summaryHeight = 40;
 
   const totalHeight =
@@ -598,9 +616,14 @@ async function renderAdversaryCard(data) {
 
   ctx.font = summaryFont;
   const difficultyValueText = `${combinedDifficulty}`;
-  ctx.fillText(difficultyValueText, padding + difficultyLabelWidth + 10, summaryY);
+  ctx.fillText(
+    difficultyValueText,
+    padding + difficultyLabelWidth + 10,
+    summaryY,
+  );
   const difficultyValueWidth = ctx.measureText(difficultyValueText).width;
-  const difficultyGroupEndX = padding + difficultyLabelWidth + 10 + difficultyValueWidth;
+  const difficultyGroupEndX =
+    padding + difficultyLabelWidth + 10 + difficultyValueWidth;
 
   // Invader Deck — rightmost
   ctx.font = `28px ${BODY_FONT_FAMILY}`;
@@ -728,7 +751,13 @@ async function renderAdversaryCard(data) {
           ? iconH * (escalationIcon.width / escalationIcon.height)
           : iconH;
         cursorX += ICON_GAP;
-        ctx.drawImage(escalationIcon, cursorX, lineY - ICON_SIZE * 0.78, iconW, iconH);
+        ctx.drawImage(
+          escalationIcon,
+          cursorX,
+          lineY - ICON_SIZE * 0.78,
+          iconW,
+          iconH,
+        );
         cursorX += iconW + ICON_GAP;
       }
 

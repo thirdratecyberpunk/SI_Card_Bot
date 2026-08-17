@@ -16,13 +16,13 @@ RUN apt-get update && apt-get install -y \
 COPY package*.json ./
 RUN npm ci --omit=dev
 
-# Stage 2: dev dependencies (adds devDependencies like nodemon on top of deps)
+# Stage 2: dev dependencies (adds devDependencies like typescript on top of deps)
 FROM deps AS dev-deps
 RUN npm ci
 
 # Stage 3: development image, used by docker-compose.dev.yml (target: dev).
 # Keeps the build toolchain so canvas can rebuild if node_modules ever needs
-# it, and runs via nodemon for auto-reload on file changes.
+# it, and runs via tsx watch mode for auto-reload on file changes.
 FROM node:20-slim AS dev
 WORKDIR /usr/src/app
 
@@ -39,7 +39,7 @@ RUN apt-get update && apt-get install -y \
 COPY --from=dev-deps /usr/src/app/node_modules ./node_modules
 COPY . .
 
-CMD ["npx", "nodemon", "index.js"]
+CMD ["npx", "tsx", "watch", "index.ts"]
 
 # Stage 4: production app image
 FROM node:20-slim AS app
@@ -64,4 +64,4 @@ USER appuser
 ENV NODE_ENV=production
 
 EXPOSE 3000
-CMD ["node", "index.js"]
+CMD ["npx", "tsx", "index.ts"]

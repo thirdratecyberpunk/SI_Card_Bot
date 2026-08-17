@@ -25,10 +25,15 @@ module.exports = {
 
     if (args.length > 0) {
       // if there's no side provided, assume they want the useful side
-      const side = (args.length > 1 ? (
-        getSide(args[0], () => { return args.shift() }) ||
-        getSide(args[args.length - 1], () => { return args.pop() })
-      ) : undefined) || "front";
+      const side =
+        (args.length > 1
+          ? getSide(args[0], () => {
+              return args.shift();
+            }) ||
+            getSide(args[args.length - 1], () => {
+              return args.pop();
+            })
+          : undefined) || "front";
       var healingNames = [];
       const searchString = args.join(" ").toLowerCase();
       for (const hc of heal.healing) {

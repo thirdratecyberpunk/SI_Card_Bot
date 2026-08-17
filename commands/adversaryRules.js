@@ -160,7 +160,9 @@ module.exports = {
     }
 
     if (leadLoss || suppLoss) {
-      lines.push(leadLoss && suppLoss ? "### Loss Conditions" : "### Loss Condition");
+      lines.push(
+        leadLoss && suppLoss ? "### Loss Conditions" : "### Loss Condition",
+      );
       if (leadLoss) lines.push(`- **${leadLoss.name}** — ${leadLoss.effect}`);
       if (suppLoss) lines.push(`- **${suppLoss.name}** — ${suppLoss.effect}`);
     }
