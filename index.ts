@@ -56,12 +56,18 @@ app.listen(HEALTH_PORT, () => {
 type CommandModule = {
   name: string;
   // TODO-ts-migration modules shouldn't need discord, they can just import it..
-  execute: (msg: Discord.Message, args: string[], discord: typeof Discord) => any;
+  execute: (
+    msg: Discord.Message,
+    args: string[],
+    discord: typeof Discord,
+  ) => any;
 };
 
 const commands: Collection<string, CommandModule> = new Collection();
 
-const commandFiles = readdirSync("./commands/").filter((file) => file.endsWith(".js") || file.endsWith(".ts"));
+const commandFiles = readdirSync("./commands/").filter(
+  (file) => file.endsWith(".js") || file.endsWith(".ts"),
+);
 
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`) as CommandModule;
