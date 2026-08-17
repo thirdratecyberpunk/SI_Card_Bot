@@ -7,7 +7,9 @@
   "scripts": {
     "test": "jest",
     "start": "tsx index.ts",
-    "dev": "tsx watch index.ts"
+    "dev": "tsx watch index.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "engines": {
     "npm": "10.x",
