@@ -19,7 +19,7 @@ live code mounting - editing source won't do anything until you rebuild.
 
 For active development, use `docker-compose.dev.yml` instead: it builds the
 `dev` image stage, bind-mounts your working directory into the container, and
-runs the bot via `nodemon`, so code changes are picked up automatically
+runs the bot via `tsx` watch mode, so code changes are picked up automatically
 without a rebuild or manual restart.
 
 - `docker compose -f docker-compose.dev.yml up -d --build` (rebuild only needed when dependencies change, e.g. `package.json`)
@@ -31,7 +31,7 @@ Alternatively, open the repo in VS Code with the
 extension installed and run **Dev Containers: Reopen in Container** — this
 uses the same `docker-compose.dev.yml` setup under `.devcontainer/`, giving
 you an integrated terminal/debugger inside the container with the bot
-already running via nodemon.
+already running via tsx watch mode.
 
 ### Running tests
 
