@@ -53,35 +53,54 @@ so `npm test` alone is usually enough.
 
 ### Bot Commands
 
-- -search [search words]
-- -draw [card type] [amount (<=10)]
-- -dtnw [player count]
-- -power [card name]
-- -minor [card name]
-- -major [card name]
-- -unique [card name]
-- -uniques [spirit name]
-- -blight [card name]
-- -board [board letter/name]
-- -event [event name]
-- -fear [fear name]
-- -faqs (search words)
-- -random spirit (max complexity (low/moderate/high/vhc))
-- -random adversary (min difficulty) (max difficulty)
-- -random double (min difficulty) (max difficulty)
-- -random scenario
-- -random board (all/thematic (defaults to regular))
-- -spirit (front/back) [keywords]
-- -adversary (adversary name) \
-- -adversaryrules (leadingAdversary leadingAdversaryLevel supportingAdversary supportingAdversaryLevel) \
-- -aspect (aspect name) [number of card (i.e. Locus part 1/2)]
-- -aspects (spirit name)
-- -healing [keyword]
-- -incarna [keyword] (front/back)
-- -scenario (front/back) [keywords]
-- -invaderdeck (leadingAdversary leadingAdversaryLevel supportingAdversary supportingAdversaryLevel)
-- -progression (spirit)
-- -fearDeck (leadingAdversary leadingAdversaryLevel supportingAdversary supportingAdversaryLevel)
+Run `-help` in Discord for this same list, or `-help <command>` for a
+description of what a specific command does. This section is generated from
+the same command metadata — after adding or changing a command's `usage`
+export, run `npm run docs:generate` to update it (and the
+[full command reference](https://thirdratecyberpunk.github.io/SI_Card_Bot/)
+site under `docs/`) rather than editing it by hand.
+
+<!-- COMMANDS:START -->
+
+- `-adversary (adversary name)`
+- `-adversaryrules (leadingAdversary leadingAdversaryLevel) (supportingAdversary supportingAdversaryLevel) (nosetup)`
+- `-aspect (aspect name|emoji) [card number]`
+- `-aspects (spirit name)`
+- `-blight [card name]`
+- `-board [board letter/name]`
+- `-card [card name]`
+- `-choose [number]`
+- `-draw [card type] [amount (<=10)]`
+- `-dtnw [player count]`
+- `-event [event name]`
+- `-faq (search words)`
+- `-fear [fear name]`
+- `-feardeck (leadingAdversary leadingAdversaryLevel) (supportingAdversary supportingAdversaryLevel)`
+- `-healing [keyword] (front/back)`
+- `-help [command name]`
+- `-incarna [keyword] (front/back)`
+- `-invaderdeck (leadingAdversary leadingAdversaryLevel) (supportingAdversary supportingAdversaryLevel)`
+- `-major [card name]`
+- `-minor [card name]`
+- `-power [card name]`
+- `-progression (spirit)`
+- `-random`
+  - `spirit (max complexity (low/moderate/high/vhc))`
+  - `adversary (min difficulty) (max difficulty)`
+  - `double (min difficulty) (max difficulty)`
+  - `scenario`
+  - `board (all/thematic (defaults to regular))`
+- `-reactionrole`
+- `-scenario (front/back) [keywords]`
+- `-search [search words]`
+- `-spirit (front/back) [keywords]`
+- `-take [card type]`
+- `-unique [card name]`
+- `-uniques (spirit name)`
+<!-- COMMANDS:END -->
+
+The full reference site (one page per command, generated into `docs/`) is
+served via GitHub Pages.
 
 # License
 

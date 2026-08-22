@@ -7,6 +7,9 @@ const draw = require("./draw.js");
 module.exports = {
   name: "uniques",
   description: "Gets a list of all the uniques for a spirit",
+  usage: "(spirit name)",
+  details:
+    "Looks up a spirit by name and lists the names of all of that spirit's Unique Power cards. Needs at least 3 letters, specific enough to match exactly one spirit.",
   public: true,
 
   async execute(msg, args) {

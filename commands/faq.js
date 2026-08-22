@@ -3,6 +3,9 @@ const to = require("await-to-js").default;
 module.exports = {
   name: "faq",
   description: "faq's website",
+  usage: "(search words)",
+  details:
+    "Builds a link into the community FAQ (hosted on Querki) - the FAQ home page with no arguments, or a pre-filled search for the given words.",
   public: true,
   async execute(msg, args) {
     if (!args[0]) {

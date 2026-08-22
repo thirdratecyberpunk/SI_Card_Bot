@@ -24,7 +24,7 @@ jest.mock(
 
 const { createMockMessage } = require("./helpers/discordMocks");
 
-const globals = require("../globals.js");
+const globals = require("../globals.cjs");
 
 const adversary = require("../commands/adversary.js");
 const adversaryRules = require("../commands/adversaryRules.js");
@@ -338,6 +338,33 @@ describe("help", () => {
     await help.execute(msg, []);
     expect(msg.channel.send).toHaveBeenCalledWith(
       expect.stringContaining("-search"),
+    );
+  });
+
+  it("omits commands explicitly marked non-public", async () => {
+    const msg = createMockMessage();
+    await help.execute(msg, []);
+    expect(msg.channel.send).toHaveBeenCalledWith(
+      expect.not.stringContaining("-template"),
+    );
+  });
+
+  it("gives a specific command's usage and details", async () => {
+    const msg = createMockMessage();
+    await help.execute(msg, ["board"]);
+    expect(msg.channel.send).toHaveBeenCalledWith(
+      expect.stringContaining("-board [board letter/name]"),
+    );
+    expect(msg.channel.send).toHaveBeenCalledWith(
+      expect.stringContaining("Returns the map image for a board"),
+    );
+  });
+
+  it("reports an unknown command instead of throwing", async () => {
+    const msg = createMockMessage();
+    await help.execute(msg, ["zzz_no_such_command_zzz"]);
+    expect(msg.channel.send).toHaveBeenCalledWith(
+      expect.stringContaining("No command called"),
     );
   });
 });

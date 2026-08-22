@@ -4,6 +4,9 @@ const ImageNames = require("./ImageNames.js");
 module.exports = {
   name: "event",
   description: "Event Search",
+  usage: "[event name]",
+  details:
+    "Looks up an Event card by name and returns its SICK card image link. Some events share an alias; if a name is ambiguous the bot asks you to be more specific instead of guessing.",
   public: true,
   async execute(msg, args) {
     await msg.channel.send(

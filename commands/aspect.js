@@ -9,6 +9,9 @@ const aspectByEmote = buildAspectByEmoteMap(allAspects); // emote -> aspectObj
 module.exports = {
   name: "aspect",
   description: "Shows cards for a given aspect (by name or emoji).",
+  usage: "(aspect name|emoji) [card number]",
+  details:
+    "Looks up a spirit Aspect by name or emoji and returns its card panel image(s). If the aspect has multiple panels (e.g. a two-part Locus card) and no card number is given, all of them are sent; give a number to send just one. Use -aspects to see which aspects a given spirit has.",
   public: true,
   execute(msg, args) {
     if (!args || args.length === 0) {

@@ -1,8 +1,11 @@
-const globals = require("../globals.js");
+const globals = require("../globals.cjs");
 
 module.exports = {
   name: "choose",
   description: "Choose from previously found results",
+  usage: "[number]",
+  details:
+    "Picks one of the numbered options from the bot's most recent multi-match prompt (e.g. when an -event search matches more than one card) and sends the chosen value. Only works immediately after such a prompt; the option list isn't saved between messages.",
   public: true,
   async execute(msg, args) {
     if (args.length == 1) {

@@ -6,6 +6,9 @@ module.exports = {
   name: "draw",
   description:
     "Draw up to 10 random cards. For only taking a single card, use -take instead.",
+  usage: "[card type] [amount (<=10)]",
+  details:
+    "Draws a random sample of cards of the given type (minor, major, fear, event or blight) and lists their names. Defaults to 4 cards if no amount is given; amount must be an integer from 1 to 10. For a single card with a direct image link, use -take instead.",
   public: true, //has to be true to show as a command
   async execute(msg, args) {
     try {
