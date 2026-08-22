@@ -18,6 +18,9 @@ function getPanel(hc, side) {
 module.exports = {
   name: "healing",
   description: "Get a healing card",
+  usage: "[keyword] (front/back)",
+  details:
+    "Looks up a Wounded Waters Bleeding healing card (roiling, serene, renew or ruin) by title and returns its panel image - front by default, or back if 'front'/'back' is given.",
   public: true,
   async execute(msg, args) {
     var panel = "Choose a healing card (roiling, serene, renew or ruin).";

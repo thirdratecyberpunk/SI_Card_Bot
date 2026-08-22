@@ -3,6 +3,9 @@ const { ad } = require("./AdversaryNames.js");
 module.exports = {
   name: "adversary",
   description: "Get a single adversary panel",
+  usage: "(adversary name)",
+  details:
+    "Looks up an adversary by exact title or alias and returns its rules panel image. With no match (or no argument), lists every adversary with its title and aliases instead.",
   public: true,
   async execute(msg, args) {
     var panel = "";

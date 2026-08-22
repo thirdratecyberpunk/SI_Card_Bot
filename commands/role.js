@@ -4,6 +4,9 @@
 module.exports = {
   name: "reactionrole",
   description: "Sets up a reaction role message!",
+  usage: "",
+  details:
+    "Posts this server's 'Looking for Group / Play by Post' reaction-role message with its LFG/PBP emoji reactions. Hardcoded to a specific channel and server - a no-op anywhere else. Admin/setup utility, not meant for everyday use.",
   public: true,
   async execute(message, args, Discord) {
     const landingChannel = "847266147120316456";

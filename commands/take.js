@@ -8,6 +8,9 @@ module.exports = {
   name: "take",
   description:
     "Take a random card and send the SICK link. For more than 1 card, use -draw instead.",
+  usage: "[card type]",
+  details:
+    "Draws a single random card of the given type (minor, major, fear, event or blight) and returns its SICK card-catalog image link directly. For more than one card, use -draw instead.",
   public: true, //has to be true to show as a command
   async execute(msg, args) {
     try {

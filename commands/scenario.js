@@ -8,6 +8,9 @@ const scenario = require("./scenarioNames.js").scenario;
 module.exports = {
   name: "scenario",
   description: "Gets the front or back panel for a given scenario",
+  usage: "(front/back) [keywords]",
+  details:
+    "Looks up a scenario by name and returns its panel image - the back by default, or the front if 'front' is given as the first argument. With no arguments, lists the names of every scenario.",
   public: true, //has to be true to show as a command
   async execute(msg, args) {
     var panel = "";

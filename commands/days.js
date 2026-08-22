@@ -6,6 +6,9 @@ module.exports = {
   name: "dtnw",
   description:
     "Draws a days that never were. Defaults to the 6/6 DTNW if no player count is given.",
+  usage: "[player count]",
+  details:
+    "Draws a 'Days That Never Were' setup - a batch of Major and Minor cards. Defaults to the larger 6/6 draw (for 3+ players); give a player count of 1 or 2 for the smaller 4/4 draw (1 player also gets an extra time-gain reminder).",
   public: true, //has to be true to show as a command
   async execute(msg, args) {
     try {

@@ -7,6 +7,9 @@ const helpString =
 module.exports = {
   name: "board",
   description: "Displays Boards",
+  usage: "[board letter/name]",
+  details:
+    "Returns the map image for a board - core boards a-h, or a directional/thematic board (NE, NW, East, West, SE, SW). Run with no argument, or 'help', to see the full list of valid inputs.",
   public: true, //has to be true to show as a command
   async execute(msg, args) {
     if (args[0] == "help" || args[0] == "") {

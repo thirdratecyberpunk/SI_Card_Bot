@@ -4,6 +4,8 @@ const ImageNames = require("./ImageNames.js");
 module.exports = {
   name: "fear",
   description: "Fear card search",
+  usage: "[fear name]",
+  details: "Looks up a Fear card by name and returns its SICK card image link.",
   public: true,
 
   async execute(msg, args) {

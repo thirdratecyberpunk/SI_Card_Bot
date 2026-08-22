@@ -8,6 +8,10 @@ module.exports = {
   name: "invaderdeck",
   description:
     "Calculates the invader deck for a given adversary/double adversary set up.",
+  usage:
+    "(leadingAdversary leadingAdversaryLevel) (supportingAdversary supportingAdversaryLevel)",
+  details:
+    "Calculates and lists the invader deck contents for a single adversary, or for a leading+supporting double-adversary setup, at the given difficulty levels.",
   public: true,
 
   async execute(msg, args) {

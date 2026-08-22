@@ -2,7 +2,6 @@
  */
 
 import dotenv from "dotenv";
-import { readdirSync } from "fs";
 import { createRequire } from "module";
 import {
   Client,
@@ -63,20 +62,11 @@ type CommandModule = {
   ) => any;
 };
 
-const commands: Collection<string, CommandModule> = new Collection();
+const { loadCommands } = require("./commandLoader.cjs");
 
-const commandFiles = readdirSync("./commands/").filter(
-  (file) => file.endsWith(".js") || file.endsWith(".ts"),
+const commands: Collection<string, CommandModule> = new Collection(
+  loadCommands().commands,
 );
-
-for (const file of commandFiles) {
-  const command = require(`./commands/${file}`) as CommandModule;
-  if (!command?.name || typeof command.execute !== "function") {
-    continue;
-  }
-
-  commands.set(command.name, command);
-}
 
 bot.once("ready", async () => {
   console.log("This bot is online");

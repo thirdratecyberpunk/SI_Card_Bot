@@ -1,7 +1,7 @@
 // const spirits = require("./spiritNames.js").spirits;
 const { spirits } = require("./spiritNames.js");
 const levenshtein = require("js-levenshtein");
-const globals = require("../globals.js");
+const globals = require("../globals.cjs");
 const { PaginatedMessage } = require("@sapphire/discord.js-utilities");
 
 const SPIRITS_PER_PAGE = 12;
@@ -9,6 +9,9 @@ const SPIRITS_PER_PAGE = 12;
 module.exports = {
   name: "spirit",
   description: "Spirit Search",
+  usage: "(front/back) [keywords]",
+  details:
+    "Looks up a spirit by name or alias and returns its panel image (front by default, or back with the 'back' flag). With no arguments, sends a paginated alphabetical list of every spirit and its emote.",
   public: true,
   async execute(msg, args) {
     try {

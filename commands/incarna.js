@@ -5,6 +5,9 @@ const getcardname = require("./sendCardLink.js").getCardName;
 module.exports = {
   name: "incarna",
   description: "Get an incarna",
+  usage: "[keyword] (front/back)",
+  details:
+    "Looks up a spirit's Incarna card by spirit name or alias and returns its panel image - the unempowered (front) side by default, or the back side if 'back' is given as the second argument.",
   public: true,
   async execute(msg, args) {
     var panel = "Please name a spirit with an incarna.";

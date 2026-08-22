@@ -1,39 +1,9 @@
-const fs = require("fs");
-const path = require("path");
+// index.ts, help.js, and the docs generator all use this same loader to
+// enumerate commands, so this test exercises the real implementation
+// (../commandLoader.js) rather than a hand-maintained copy of it.
+const { loadCommands } = require("../commandLoader.cjs");
 
-const COMMANDS_DIR = path.join(__dirname, "..", "commands");
-
-/**
- * Mirrors index.ts's dynamic command-loading loop exactly: read every file
- * in commands/ ending in .js or .ts, require it, and register it if it
- * exposes a `name` string and a callable `execute`. This is the loader the
- * TypeScript migration changed (index.js -> index.ts, require() via
- * createRequire), so it's the most direct regression check for "did the
- * migration still wire every command up correctly".
- */
-function loadCommands() {
-  const commandFiles = fs
-    .readdirSync(COMMANDS_DIR)
-    .filter((file) => file.endsWith(".js") || file.endsWith(".ts"));
-
-  const commands = new Map();
-  const namesByFile = new Map();
-  const skippedFiles = [];
-
-  for (const file of commandFiles) {
-    const command = require(path.join(COMMANDS_DIR, file));
-    if (!command?.name || typeof command.execute !== "function") {
-      skippedFiles.push(file);
-      continue;
-    }
-    commands.set(command.name, command);
-    namesByFile.set(file, command.name);
-  }
-
-  return { commandFiles, commands, namesByFile, skippedFiles };
-}
-
-describe("command loader (mirrors index.ts's dynamic require loop)", () => {
+describe("command loader (used by index.ts, help.js, and the docs generator)", () => {
   const { commandFiles, commands, namesByFile, skippedFiles } = loadCommands();
 
   it("finds command files in commands/", () => {
@@ -64,12 +34,15 @@ describe("command loader (mirrors index.ts's dynamic require loop)", () => {
       "uniques",
       "blight",
       "board",
+      "card",
+      "choose",
       "event",
       "fear",
       "faq",
       "adversary",
       "adversaryrules",
       "random",
+      "reactionrole",
       "spirit",
       "aspect",
       "aspects",

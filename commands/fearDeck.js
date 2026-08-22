@@ -8,6 +8,10 @@ module.exports = {
   name: "feardeck",
   description:
     "Calculates the fear deck for a given adversary/double adversary set up.",
+  usage:
+    "(leadingAdversary leadingAdversaryLevel) (supportingAdversary supportingAdversaryLevel)",
+  details:
+    "Calculates the fear card counts (shown as an X/Y/Z split) for a single adversary, or for a leading+supporting double-adversary setup, at the given difficulty levels.",
   public: true,
   async execute(msg, args) {
     try {

@@ -15,6 +15,14 @@ module.exports = {
   name: "random",
   description:
     "Get a random spirit, single/double adversary, board or scenario",
+  usage:
+    "spirit (max complexity (low/moderate/high/vhc))\n" +
+    "adversary (min difficulty) (max difficulty)\n" +
+    "double (min difficulty) (max difficulty)\n" +
+    "scenario\n" +
+    "board (all/thematic (defaults to regular))",
+  details:
+    "Picks a uniformly random result for the given category: a spirit (optionally capped by max complexity), a single adversary or double-adversary setup (optionally bounded by a difficulty range), a scenario, or a board (regular/thematic/all) - then sends its name plus artwork/panel link.",
   public: true,
   async execute(msg, args) {
     if (args[0]) {
