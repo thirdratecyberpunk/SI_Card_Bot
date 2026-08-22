@@ -14,7 +14,7 @@ var help =
 	\n -board [board letter/name] \
 	\n -event [event name] \
 	\n -fear [fear name] \
-	\n -faqs (search words) \
+	\n -faq (search words) \
 	\n -adversary (adversary name) \
 	\n -adversaryrules (leadingAdversary leadingAdversaryLevel supportingAdversary supportingAdversaryLevel) \
 	\n -random spirit (max complexity (low/moderate/high/vhc)) \

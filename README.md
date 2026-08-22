@@ -65,15 +65,15 @@ so `npm test` alone is usually enough.
 - -board [board letter/name]
 - -event [event name]
 - -fear [fear name]
-- -faqs (search words)
+- -faq (search words)
 - -random spirit (max complexity (low/moderate/high/vhc))
 - -random adversary (min difficulty) (max difficulty)
 - -random double (min difficulty) (max difficulty)
 - -random scenario
 - -random board (all/thematic (defaults to regular))
 - -spirit (front/back) [keywords]
-- -adversary (adversary name) \
-- -adversaryrules (leadingAdversary leadingAdversaryLevel supportingAdversary supportingAdversaryLevel) \
+- -adversary (adversary name)
+- -adversaryrules (leadingAdversary leadingAdversaryLevel supportingAdversary supportingAdversaryLevel)
 - -aspect (aspect name) [number of card (i.e. Locus part 1/2)]
 - -aspects (spirit name)
 - -healing [keyword]
