@@ -51,6 +51,16 @@ If you're working inside the dev container (see above), run the same
 commands there instead — `npm install` already ran during the image build,
 so `npm test` alone is usually enough.
 
+### Deploy changelog announcements
+
+When a change is merged to `main`, the `deploy.yml` workflow deploys the new
+image and then POSTs the list of merged commits to the bot's
+`/webhook/deploy` endpoint (authenticated with the `DEPLOY_WEBHOOK_SECRET`
+env var / GitHub secret). The bot then posts that changelog to every server
+it's in - the system channel if it can, otherwise the topmost text channel
+it has permission to post in. See `scripts/notifyDeploy.cjs` and
+`utils/broadcast.cjs`.
+
 ### Bot Commands
 
 Run `-help` in Discord for this same list, or `-help <command>` for a
