@@ -56,6 +56,17 @@ jobs:
           IMAGE_URI=$(cat image_uri.txt)
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
+      # Turns the commits pushed to main into the JSON body the bot's
+      # /webhook/deploy endpoint expects. Built from an env var (not
+      # interpolated straight into the script) so a commit message can't
+      # break out into shell.
+      - name: Build changelog payload
+        env:
+          COMMITS_JSON: ${{ toJson(github.event.commits) }}
+        run: |
+          echo "$COMMITS_JSON" | jq '{changes: [.[] | (.message | split("\n")[0]) + " (" + .author.name + ")"]}' > changes.json
+          cat changes.json
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -63,10 +74,16 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
 
+      - name: Copy changelog payload to EC2
+        run: |
+          scp -i ~/.ssh/id_rsa changes.json ubuntu@${{ secrets.EC2_HOST }}:/tmp/si-card-bot-changes.json
+
       - name: Deploy to EC2
         run: |
           ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.EC2_HOST }} \
-            IMAGE_URI="$IMAGE_URI" 'bash -s' <<'EOF'
+            IMAGE_URI="$IMAGE_URI" \
+            DEPLOY_WEBHOOK_SECRET="${{ secrets.DEPLOY_WEBHOOK_SECRET }}" \
+            'bash -s' <<'EOF'
           set -euo pipefail
 
           echo "Deploying $IMAGE_URI"
@@ -96,4 +113,16 @@ jobs:
 
           echo "Starting containers..."
           sudo docker compose up -d --remove-orphans
+
+          # Notify the bot of what changed so it can post to every server
+          # it's in. The bot's port isn't published to the host (see
+          # docker-compose.yml), so this runs from inside the container
+          # itself via `docker compose exec`. Best-effort: a failure here
+          # doesn't fail the deploy.
+          echo "Notifying bot of changes..."
+          sudo docker compose cp /tmp/si-card-bot-changes.json si-card-bot:/tmp/changes.json
+          sudo docker compose exec -T -e DEPLOY_WEBHOOK_SECRET="$DEPLOY_WEBHOOK_SECRET" si-card-bot \
+            node scripts/notifyDeploy.cjs /tmp/changes.json \
+            || echo "Warning: failed to notify bot of changelog"
+          rm -f /tmp/si-card-bot-changes.json
           EOF

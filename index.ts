@@ -47,6 +47,48 @@ app.get("/ready", (_req: any, res: any) => {
   return res.status(503).send("not ready");
 });
 
+// --- deploy webhook ---
+// Called by the deploy pipeline (from inside this container - see
+// scripts/notifyDeploy.cjs) after a new image is up, so the bot can post
+// the list of changes to every server it's in. Not reachable from outside
+// the container's own network namespace (see docker-compose.yml), so the
+// shared secret is defence in depth rather than the only guard.
+app.use(express.json({ limit: "100kb" }));
+
+const DEPLOY_WEBHOOK_SECRET = process.env.DEPLOY_WEBHOOK_SECRET;
+
+app.post("/webhook/deploy", async (req: any, res: any) => {
+  if (!DEPLOY_WEBHOOK_SECRET) {
+    console.error(
+      "DEPLOY_WEBHOOK_SECRET not configured; rejecting /webhook/deploy call",
+    );
+    return res.status(503).send("webhook not configured");
+  }
+  if (req.get("x-deploy-secret") !== DEPLOY_WEBHOOK_SECRET) {
+    return res.status(401).send("unauthorized");
+  }
+  if (!ready) {
+    return res.status(503).send("bot not ready");
+  }
+
+  const changes = Array.isArray(req.body?.changes)
+    ? req.body.changes.filter(
+        (change: unknown) => typeof change === "string" && change.trim(),
+      )
+    : [];
+  if (changes.length === 0) {
+    return res.status(400).send("no changes provided");
+  }
+
+  const message = formatChangelogMessage(changes);
+  const result = await broadcastToGuilds(bot, message);
+  console.log(
+    `Changelog broadcast: sent to ${result.sent} guild(s), skipped ${result.skipped}`,
+  );
+  res.status(200).json(result);
+});
+// --- end deploy webhook ---
+
 app.listen(HEALTH_PORT, () => {
   console.log(`Health endpoints listening on port ${HEALTH_PORT}`);
 });
@@ -63,6 +105,10 @@ type CommandModule = {
 };
 
 const { loadCommands } = require("./commandLoader.cjs");
+const {
+  formatChangelogMessage,
+  broadcastToGuilds,
+} = require("./utils/broadcast.cjs");
 
 const commands: Collection<string, CommandModule> = new Collection(
   loadCommands().commands,
