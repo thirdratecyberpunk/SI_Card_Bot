@@ -278,7 +278,8 @@ describe("event", () => {
   it("returns a card link for an exact name", async () => {
     const msg = createMockMessage();
     await event.execute(msg, ["slave_rebellion"]);
-    expect(msg.channel.send.mock.calls[0][0]).toBe(
+    expect(msg.channel.send).toHaveBeenCalledTimes(1);
+    expect(msg.channel.send).toHaveBeenCalledWith(
       "https://sick.oberien.de/imgs/events/slave_rebellion.webp",
     );
   });
@@ -308,7 +309,8 @@ describe("fear", () => {
   it("returns a card link for an exact name", async () => {
     const msg = createMockMessage();
     await fear.execute(msg, ["fear_of_the_unseen"]);
-    expect(msg.channel.send.mock.calls[0][0]).toBe(
+    expect(msg.channel.send).toHaveBeenCalledTimes(1);
+    expect(msg.channel.send).toHaveBeenCalledWith(
       "https://sick.oberien.de/imgs/fears/fear_of_the_unseen.webp",
     );
   });
