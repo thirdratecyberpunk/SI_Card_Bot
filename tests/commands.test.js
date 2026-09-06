@@ -278,7 +278,8 @@ describe("event", () => {
   it("returns a card link for an exact name", async () => {
     const msg = createMockMessage();
     await event.execute(msg, ["slave_rebellion"]);
-    expect(msg.channel.send.mock.calls[0][0]).toBe(
+    expect(msg.channel.send).toHaveBeenCalledTimes(1);
+    expect(msg.channel.send).toHaveBeenCalledWith(
       "https://sick.oberien.de/imgs/events/slave_rebellion.webp",
     );
   });
@@ -308,8 +309,34 @@ describe("fear", () => {
   it("returns a card link for an exact name", async () => {
     const msg = createMockMessage();
     await fear.execute(msg, ["fear_of_the_unseen"]);
-    expect(msg.channel.send.mock.calls[0][0]).toBe(
+    expect(msg.channel.send).toHaveBeenCalledTimes(1);
+    expect(msg.channel.send).toHaveBeenCalledWith(
       "https://sick.oberien.de/imgs/fears/fear_of_the_unseen.webp",
+    );
+  });
+
+  it("returns a level's text as a message instead of the card image when a level is given", async () => {
+    const msg = createMockMessage();
+    await fear.execute(msg, ["flee", "from", "dangerous", "lands", "2"]);
+    expect(msg.channel.send).toHaveBeenCalledWith(
+      "**Flee from Dangerous Lands** (Level 2)\n" +
+        "Terror Level 2: On Each Board: Remove 1 Explorer / Town from a land with Badlands / Wilds / Dahan.",
+    );
+  });
+
+  it("falls back to the card image when the trailing number isn't a valid level", async () => {
+    const msg = createMockMessage();
+    await fear.execute(msg, ["isolation", "5"]);
+    expect(msg.channel.send.mock.calls[0][0]).toBe(
+      "https://sick.oberien.de/imgs/fears/isolation.webp",
+    );
+  });
+
+  it("asks for a card name when only a level is given", async () => {
+    const msg = createMockMessage();
+    await fear.execute(msg, ["3"]);
+    expect(msg.channel.send).toHaveBeenCalledWith(
+      "Give a fear card name too, e.g. `-fear isolation 2`.",
     );
   });
 });

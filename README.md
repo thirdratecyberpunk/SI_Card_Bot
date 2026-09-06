@@ -84,7 +84,7 @@ site under `docs/`) rather than editing it by hand.
 - `-dtnw [player count]`
 - `-event [event name]`
 - `-faq (search words)`
-- `-fear [fear name]`
+- `-fear [fear name] (level)`
 - `-feardeck (leadingAdversary leadingAdversaryLevel) (supportingAdversary supportingAdversaryLevel)`
 - `-healing [keyword] (front/back)`
 - `-help [command name]`

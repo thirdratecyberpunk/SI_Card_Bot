@@ -80,6 +80,7 @@ describe("command loader (used by index.ts, help.js, and the docs generator)", (
       "boardNames.js",
       "complexities.js",
       "Deck.js",
+      "fearCardText.js",
       "ImageNames.js",
       "InvaderDeckCard.js",
       "healingNames.js",
