@@ -10,16 +10,8 @@
  * of this commit — this is the regression baseline, not a spec, so update
  * the expectations here if a future change intentionally alters output.
  */
-// commands/ has its own (stray, duplicate) node_modules, so a plain
-// jest.mock("@sapphire/discord.js-utilities", ...) mocks the copy resolved
-// from tests/ while spirit.js/aspects.js resolve the copy nested under
-// commands/node_modules/ — resolve from the same place they do so the mock
-// actually intercepts what they require.
-jest.mock(
-  require.resolve("@sapphire/discord.js-utilities", {
-    paths: [require("path").join(__dirname, "..", "commands")],
-  }),
-  () => require("./helpers/discordMocks").paginatedMessageMock(),
+jest.mock("@sapphire/discord.js-utilities", () =>
+  require("./helpers/discordMocks").paginatedMessageMock(),
 );
 
 const { createMockMessage } = require("./helpers/discordMocks");
@@ -312,6 +304,14 @@ describe("fear", () => {
     expect(msg.channel.send).toHaveBeenCalledTimes(1);
     expect(msg.channel.send).toHaveBeenCalledWith(
       "https://sick.oberien.de/imgs/fears/fear_of_the_unseen.webp",
+    );
+  });
+
+  it("sends a paginated list of every fear card's title when given no args", async () => {
+    const msg = createMockMessage();
+    await fear.execute(msg, []);
+    expect(msg.channel.send).toHaveBeenCalledWith(
+      expect.stringMatching(/^__paginated__ pages=\d+$/),
     );
   });
 
