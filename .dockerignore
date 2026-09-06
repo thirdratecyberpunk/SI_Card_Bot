@@ -1,5 +1,5 @@
 # file listing files to not directly copy into the image
-node_modules;
+node_modules
 npm-debug.log
 .DS_Store
 .git
