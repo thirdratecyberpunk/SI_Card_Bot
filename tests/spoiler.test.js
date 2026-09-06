@@ -205,10 +205,7 @@ describe("spoilerWrappedMessage / applySpoilerMiddleware", () => {
 
   it("returns the original message unchanged when there's no spoiler wrapper", () => {
     const msg = createMessage("-event promising");
-    const { content, isSpoiler, message } = applySpoilerMiddleware(
-      msg,
-      PREFIX,
-    );
+    const { content, isSpoiler, message } = applySpoilerMiddleware(msg, PREFIX);
 
     expect(isSpoiler).toBe(false);
     expect(content).toBe("-event promising");
@@ -227,8 +224,7 @@ describe("spoilerWrappedMessage / applySpoilerMiddleware", () => {
       expect(isSpoiler).toBe(true);
       expect(content).toBe(`-${commandName} promising`);
 
-      const url =
-        "https://sick.oberien.de/imgs/events/promising_venture.webp";
+      const url = "https://sick.oberien.de/imgs/events/promising_venture.webp";
       await message.channel.send(url);
 
       expect(msg.channel.send).toHaveBeenCalledWith({
@@ -239,10 +235,7 @@ describe("spoilerWrappedMessage / applySpoilerMiddleware", () => {
 
   it("leaves a spoilered command outside the allow-list completely untouched", () => {
     const msg = createMessage("||-random spirit||");
-    const { content, isSpoiler, message } = applySpoilerMiddleware(
-      msg,
-      PREFIX,
-    );
+    const { content, isSpoiler, message } = applySpoilerMiddleware(msg, PREFIX);
 
     expect(isSpoiler).toBe(false);
     expect(content).toBe("||-random spirit||");

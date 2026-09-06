@@ -37,9 +37,7 @@ module.exports = {
  * style as -spirit's list with no args.
  */
 function sendFearCardList(msg) {
-  const sorted = [...fearCardText].sort((a, b) =>
-    a.name.localeCompare(b.name),
-  );
+  const sorted = [...fearCardText].sort((a, b) => a.name.localeCompare(b.name));
   const paginated = new PaginatedMessage();
 
   for (let i = 0; i < sorted.length; i += FEAR_CARDS_PER_PAGE) {
