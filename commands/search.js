@@ -13,7 +13,7 @@ module.exports = {
   description: "search the SICK library",
   usage: "[search words]",
   details:
-    "Builds a link to search sick.oberien.de's card catalog for the given words (spaces become %20 in the URL). Run `-search help` to see the supported query syntax - quoted phrases, and filters like `elements:`, `range:`, `cost:` and `target:`.",
+    "Builds a link to search sick.oberien.de's card catalog for the given words (spaces become %20 in the URL). Run `-search help` to see the supported query syntax - quoted phrases, and filters like `elements:`, `range:`, `cost:` and `target:`. Wrap the whole message in spoiler bars (e.g. `||-search Vital Strength of the Earth||`) to have the bot send the search link as a spoiler.",
   public: true,
   async execute(msg, args) {
     if (args[0] == "help") {

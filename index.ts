@@ -109,6 +109,7 @@ const {
   formatChangelogMessage,
   broadcastToGuilds,
 } = require("./utils/broadcast.cjs");
+const { applySpoilerMiddleware } = require("./utils/spoiler.cjs");
 
 const commands: Collection<string, CommandModule> = new Collection(
   loadCommands().commands,
@@ -128,8 +129,15 @@ bot.once("ready", async () => {
 });
 
 bot.on("messageCreate", async (msg) => {
-  if (!msg.content.startsWith(PREFIX)) return;
-  let args = msg.content.slice(PREFIX.length).trim().split(" ");
+  // If the whole message is wrapped in spoiler markdown and it dispatches
+  // to -search, -event, or -fear (see SPOILERABLE_COMMANDS), unwrap it for
+  // command parsing and hand off a message whose channel.send
+  // spoiler-tags whatever the command sends back. Any other command
+  // passes through untouched, spoiler wrapper or not.
+  const { content, message } = applySpoilerMiddleware(msg, PREFIX);
+
+  if (!content.startsWith(PREFIX)) return;
+  let args = content.slice(PREFIX.length).trim().split(" ");
   let command = args.shift()?.toLowerCase();
   console.log(command);
 
@@ -138,7 +146,7 @@ bot.on("messageCreate", async (msg) => {
   if (!commands.has(command)) return console.log("command not in list");
 
   try {
-    await commands.get(command)?.execute(msg, args, Discord);
+    await commands.get(command)?.execute(message, args, Discord);
   } catch (error) {
     console.error(error);
   }
