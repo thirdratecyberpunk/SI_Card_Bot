@@ -1,5 +1,4 @@
 const {
-  extractSpoilerContent,
   wrapTextInSpoiler,
   wrapEmbedInSpoiler,
   wrapPayloadInSpoiler,
@@ -10,45 +9,7 @@ const {
   spoilerCardAttachmentPayload,
   SPOILERABLE_COMMANDS,
 } = require("../utils/spoiler.cjs");
-
-const PREFIX = "-";
-
-describe("extractSpoilerContent", () => {
-  it("unwraps a message that's fully wrapped in spoiler markdown", () => {
-    expect(extractSpoilerContent("||-event promising||")).toEqual({
-      isSpoiler: true,
-      content: "-event promising",
-    });
-  });
-
-  it("unwraps a message with surrounding whitespace", () => {
-    expect(extractSpoilerContent("  ||-random spirit||  ")).toEqual({
-      isSpoiler: true,
-      content: "-random spirit",
-    });
-  });
-
-  it("leaves ordinary command messages untouched", () => {
-    expect(extractSpoilerContent("-event promising")).toEqual({
-      isSpoiler: false,
-      content: "-event promising",
-    });
-  });
-
-  it("doesn't treat a partial spoiler as a fully spoilered message", () => {
-    expect(extractSpoilerContent("-event ||promising||")).toEqual({
-      isSpoiler: false,
-      content: "-event ||promising||",
-    });
-  });
-
-  it("doesn't treat a bare || as a spoiler", () => {
-    expect(extractSpoilerContent("||")).toEqual({
-      isSpoiler: false,
-      content: "||",
-    });
-  });
-});
+const { createMockInteraction } = require("./helpers/discordMocks");
 
 describe("wrapTextInSpoiler", () => {
   it("wraps plain text in spoiler markdown", () => {
@@ -197,62 +158,76 @@ describe("SPOILERABLE_COMMANDS", () => {
   });
 });
 
-describe("spoilerWrappedMessage / applySpoilerMiddleware", () => {
-  function createMessage(content) {
+describe("applySpoilerMiddleware", () => {
+  function createMessage() {
     const channel = { id: "c1", send: jest.fn().mockResolvedValue("sent") };
-    return { content, channel, author: { id: "u1" } };
+    return { channel, author: { id: "u1" } };
   }
 
-  it("returns the original message unchanged when there's no spoiler wrapper", () => {
-    const msg = createMessage("-event promising");
-    const { content, isSpoiler, message } = applySpoilerMiddleware(msg, PREFIX);
+  const CARD_URL = "https://sick.oberien.de/imgs/events/promising_venture.webp";
+  const SPOILERED_CARD = {
+    files: [{ attachment: CARD_URL, name: "SPOILER_promising_venture.webp" }],
+  };
+
+  it("leaves the message alone when the spoiler option isn't set", () => {
+    const msg = createMessage();
+    const interaction = createMockInteraction({
+      commandName: "event",
+      options: { card: "promising venture" },
+    });
+
+    const { isSpoiler, message } = applySpoilerMiddleware(interaction, msg);
 
     expect(isSpoiler).toBe(false);
-    expect(content).toBe("-event promising");
     expect(message).toBe(msg);
   });
 
   it.each(["search", "event", "fear"])(
-    "unwraps -%s and spoiler-tags whatever it sends back",
+    "spoiler-tags whatever /%s sends back when the option is set",
     async (commandName) => {
-      const msg = createMessage(`||-${commandName} promising||`);
-      const { content, isSpoiler, message } = applySpoilerMiddleware(
-        msg,
-        PREFIX,
-      );
-
-      expect(isSpoiler).toBe(true);
-      expect(content).toBe(`-${commandName} promising`);
-
-      const url = "https://sick.oberien.de/imgs/events/promising_venture.webp";
-      await message.channel.send(url);
-
-      expect(msg.channel.send).toHaveBeenCalledWith({
-        files: [{ attachment: url, name: "SPOILER_promising_venture.webp" }],
+      const msg = createMessage();
+      const interaction = createMockInteraction({
+        commandName,
+        options: { spoiler: true },
       });
+
+      const { isSpoiler, message } = applySpoilerMiddleware(interaction, msg);
+      expect(isSpoiler).toBe(true);
+
+      await message.channel.send(CARD_URL);
+
+      expect(msg.channel.send).toHaveBeenCalledWith(SPOILERED_CARD);
     },
   );
 
-  it("leaves a spoilered command outside the allow-list completely untouched", () => {
-    const msg = createMessage("||-random spirit||");
-    const { content, isSpoiler, message } = applySpoilerMiddleware(msg, PREFIX);
+  it("ignores the toggle on a command outside the allow-list", () => {
+    const msg = createMessage();
+    const interaction = createMockInteraction({
+      commandName: "random",
+      options: { spoiler: true },
+    });
+
+    const { isSpoiler, message } = applySpoilerMiddleware(interaction, msg);
 
     expect(isSpoiler).toBe(false);
-    expect(content).toBe("||-random spirit||");
     expect(message).toBe(msg);
   });
 
-  it("leaves a spoilered -help untouched too", () => {
-    const msg = createMessage("||-help||");
-    const { isSpoiler, message } = applySpoilerMiddleware(msg, PREFIX);
+  it("copes with a command that declares no options at all", () => {
+    const msg = createMessage();
+    const interaction = createMockInteraction({ commandName: "help" });
 
-    expect(isSpoiler).toBe(false);
-    expect(message).toBe(msg);
+    expect(applySpoilerMiddleware(interaction, msg).message).toBe(msg);
   });
 
   it("still exposes the message's other properties through the wrapper", () => {
-    const msg = createMessage("||-event promising||");
-    const { message } = applySpoilerMiddleware(msg, PREFIX);
+    const msg = createMessage();
+    const interaction = createMockInteraction({
+      commandName: "event",
+      options: { spoiler: true },
+    });
+
+    const { message } = applySpoilerMiddleware(interaction, msg);
 
     expect(message.author).toBe(msg.author);
   });

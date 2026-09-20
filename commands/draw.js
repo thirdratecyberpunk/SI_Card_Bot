@@ -5,16 +5,37 @@ const cards = require("./ImageNames.js");
 module.exports = {
   name: "draw",
   description:
-    "Draw up to 10 random cards. For only taking a single card, use -take instead.",
-  usage: "[card type] [amount (<=10)]",
+    "Draw up to 10 random cards. For only taking a single card, use /take instead.",
   details:
-    "Draws a random sample of cards of the given type (minor, major, fear, event or blight) and lists their names. Defaults to 4 cards if no amount is given; amount must be an integer from 1 to 10. For a single card with a direct image link, use -take instead.",
+    "Draws a random sample of cards of the given type (minor, major, fear, event or blight) and lists their names. Defaults to 4 cards if no amount is given; amount must be an integer from 1 to 10. For a single card with a direct image link, use /take instead.",
   public: true, //has to be true to show as a command
+  options: [
+    {
+      name: "type",
+      description: "Type of card to draw",
+      type: "string",
+      required: true,
+      choices: [
+        { name: "Minor Power", value: "minor" },
+        { name: "Major Power", value: "major" },
+        { name: "Fear", value: "fear" },
+        { name: "Event", value: "event" },
+        { name: "Blight", value: "blight" },
+      ],
+    },
+    {
+      name: "amount",
+      description: "How many to draw (1-10, defaults to 4)",
+      type: "integer",
+      minValue: 1,
+      maxValue: 10,
+    },
+  ],
   async execute(msg, args) {
     try {
       if (args.length < 1) {
         throw new Error(
-          "Please specify a type of card to draw (minor, major, fear or event) (defaults to 4 cards drawn). For only taking a single card, use -take instead.",
+          "Please specify a type of card to draw (minor, major, fear or event) (defaults to 4 cards drawn). For only taking a single card, use /take instead.",
         );
       }
       drawnType = args[0].toLowerCase();

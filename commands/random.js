@@ -15,15 +15,89 @@ module.exports = {
   name: "random",
   description:
     "Get a random spirit, single/double adversary, board or scenario",
-  usage:
-    "spirit (max complexity (low/moderate/high/vhc))\n" +
-    "adversary (min difficulty) (max difficulty)\n" +
-    "double (min difficulty) (max difficulty)\n" +
-    "scenario\n" +
-    "board (all/thematic (defaults to regular))",
   details:
     "Picks a uniformly random result for the given category: a spirit (optionally capped by max complexity), a single adversary or double-adversary setup (optionally bounded by a difficulty range), a scenario, or a board (regular/thematic/all) - then sends its name plus artwork/panel link.",
   public: true,
+  subcommands: [
+    {
+      name: "spirit",
+      description: "Pick a random spirit",
+      options: [
+        {
+          name: "max_complexity",
+          description: "Cap the spirit's complexity",
+          type: "string",
+          choices: [
+            { name: "Low", value: "low" },
+            { name: "Moderate", value: "moderate" },
+            { name: "High", value: "high" },
+            { name: "Very High", value: "very_high" },
+          ],
+        },
+      ],
+    },
+    {
+      name: "adversary",
+      description: "Pick a random adversary and level",
+      options: [
+        {
+          name: "min_difficulty",
+          description: "Lowest acceptable difficulty (0-11)",
+          type: "integer",
+          minValue: 0,
+          maxValue: 11,
+        },
+        {
+          name: "max_difficulty",
+          description: "Highest acceptable difficulty (0-11)",
+          type: "integer",
+          minValue: 0,
+          maxValue: 11,
+        },
+      ],
+    },
+    {
+      name: "double",
+      description: "Pick a random leading + supporting adversary setup",
+      options: [
+        {
+          name: "min_difficulty",
+          description: "Lowest acceptable combined difficulty (1-17)",
+          type: "integer",
+          minValue: 1,
+          maxValue: 17,
+        },
+        {
+          name: "max_difficulty",
+          description: "Highest acceptable combined difficulty (1-17)",
+          type: "integer",
+          minValue: 1,
+          maxValue: 17,
+        },
+      ],
+    },
+    {
+      name: "scenario",
+      description: "Pick a random scenario",
+      options: [],
+    },
+    {
+      name: "board",
+      description: "Pick a random board",
+      options: [
+        {
+          name: "type",
+          description: "Which pool to pick from (defaults to regular)",
+          type: "string",
+          choices: [
+            { name: "Regular", value: "regular" },
+            { name: "Thematic", value: "thematic" },
+            { name: "All", value: "all" },
+          ],
+        },
+      ],
+    },
+  ],
   async execute(msg, args) {
     if (args[0]) {
       let command = args[0];

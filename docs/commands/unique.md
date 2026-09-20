@@ -1,18 +1,24 @@
 ---
-title: "-unique"
+title: "/unique"
 layout: default
 ---
 
 [← Back to command list](../index.html)
 
-# -unique
+# /unique
 
 Unique card search
 
 ## Usage
 
 ```
--unique [card name]
+/unique <card>
 ```
 
-Same lookup as -power, restricted to spirits' Unique Power cards.
+## Options
+
+| Option | Type   | Required | Description             |
+| ------ | ------ | -------- | ----------------------- |
+| `card` | string | yes      | Unique Power card name. |
+
+Same lookup as /power, restricted to spirits' Unique Power cards.

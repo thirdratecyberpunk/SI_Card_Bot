@@ -1057,7 +1057,7 @@ function parseSetupArgs(args) {
   if (!Array.isArray(args)) throw new Error("Invalid arguments");
   if (args.length !== 2 && args.length !== 4) {
     throw new Error(
-      "Please specify at least one adversary and a numeric level (-invaderdeck prussia 6) or (-invaderdeck prussia 6 scotland 6).",
+      "Please specify at least one adversary and a numeric level (/invaderdeck prussia 6) or (/invaderdeck prussia 6 scotland 6).",
     );
   }
 
@@ -1071,7 +1071,7 @@ function parseSetupArgs(args) {
   const leadingAdversary = findByToken(leadToken);
   if (!leadingAdversary)
     throw new Error(
-      "Leading adversary not found; try names or nicknames listed in -adversary.",
+      "Leading adversary not found; try names or nicknames listed in /adversary.",
     );
 
   let supportingAdversary = null;
@@ -1087,7 +1087,7 @@ function parseSetupArgs(args) {
     supportingAdversary = findByToken(suppToken);
     if (!supportingAdversary)
       throw new Error(
-        "Supporting adversary not found; try names or nicknames listed in -adversary.",
+        "Supporting adversary not found; try names or nicknames listed in /adversary.",
       );
 
     if (supportingAdversary.name === leadingAdversary.name)
@@ -1348,8 +1348,16 @@ function getLossCondition(adversary, level, otherLevel = null) {
 }
 
 // Export registry and helpers
+// Choice list for the adversary slash command options. `value` is the token
+// findByToken() matches on, `name` the full title players see in the picker.
+const adversaryChoices = [...ad.values()].map((adversary) => ({
+  name: adversary.name,
+  value: adversary.title,
+}));
+
 module.exports = {
   ad,
+  adversaryChoices,
   findByToken,
   isValidAdversaryLevel,
   parseSetupArgs,

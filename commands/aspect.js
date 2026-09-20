@@ -9,14 +9,27 @@ const aspectByEmote = buildAspectByEmoteMap(allAspects); // emote -> aspectObj
 module.exports = {
   name: "aspect",
   description: "Shows cards for a given aspect (by name or emoji).",
-  usage: "(aspect name|emoji) [card number]",
   details:
-    "Looks up a spirit Aspect by name or emoji and returns its card panel image(s). If the aspect has multiple panels (e.g. a two-part Locus card) and no card number is given, all of them are sent; give a number to send just one. Use -aspects to see which aspects a given spirit has.",
+    "Looks up a spirit Aspect by name or emoji and returns its card panel image(s). If the aspect has multiple panels (e.g. a two-part Locus card) and no card number is given, all of them are sent; give a number to send just one. Use /aspects to see which aspects a given spirit has.",
   public: true,
+  options: [
+    {
+      name: "aspect",
+      description: "Aspect name or emoji",
+      type: "string",
+      required: true,
+    },
+    {
+      name: "card",
+      description: "Which panel to send, if the aspect has more than one",
+      type: "integer",
+      minValue: 1,
+    },
+  ],
   execute(msg, args) {
     if (!args || args.length === 0) {
       return msg.channel.send(
-        "Usage: aspect <aspect name|emoji> [card number] (use -aspects for a list of a spirit's aspects)",
+        "Usage: /aspect aspect:<name or emoji> [card:<number>] (use /aspects for a list of a spirit's aspects)",
       );
     }
 
@@ -30,7 +43,7 @@ module.exports = {
     const query = args.join(" ").trim();
     if (!query)
       return msg.channel.send(
-        "Usage: aspect <aspect name|emoji> [card number] (use -aspects for a list of a spirit's aspects)",
+        "Usage: /aspect aspect:<name or emoji> [card:<number>] (use /aspects for a list of a spirit's aspects)",
       );
 
     // emoji query

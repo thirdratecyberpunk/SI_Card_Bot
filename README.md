@@ -36,7 +36,9 @@ already running via tsx watch mode.
 ### Running tests
 
 The test suite (Jest) covers the deck/fear-deck calculations and the
-adversary rules/doubles-notes logic in `commands/AdversaryNames.js`. It runs
+adversary rules/doubles-notes logic in `commands/AdversaryNames.js`, every
+command module's output, and the slash command layer (option-to-args
+translation, interaction replies, and the spoiler middleware). It runs
 against plain Node, no Docker required:
 
 - `npm install`
@@ -51,6 +53,32 @@ If you're working inside the dev container (see above), run the same
 commands there instead — `npm install` already ran during the image build,
 so `npm test` alone is usually enough.
 
+### Slash commands
+
+The bot registers its slash commands with Discord itself on startup, so a
+deploy that adds a command or changes an option takes effect on its own.
+
+Two env vars control this (see `.env.template`):
+
+- `DISCORD_GUILD_ID` — register to a single server instead of globally.
+  Guild registrations appear immediately, where global ones can take up to
+  an hour to propagate, so set this while developing and leave it blank in
+  production.
+- `DISCORD_CLIENT_ID` — only needed by `npm run commands:deploy`, the
+  manual registration script (`scripts/deployCommands.cjs`). Use it to push
+  command definitions without restarting the bot.
+
+A command module declares the options Discord should collect as an
+`options` array (or `subcommands`, as `/random` does);
+`utils/slashCommands.cjs` turns those into Discord's command definitions,
+and turns a user's filled-in options back into the positional `args` array
+the module's `execute` reads. Adding a command means writing the module —
+registration, `/help` and the docs all follow from its own exports.
+
+Note that migrating to slash commands dropped the privileged
+`MessageContent` gateway intent, which the bot no longer needs: it is only
+sent the commands people explicitly run, not every message in a channel.
+
 ### Deploy changelog announcements
 
 When a change is merged to `main`, the `deploy.yml` workflow deploys the new
@@ -63,50 +91,55 @@ it has permission to post in. See `scripts/notifyDeploy.cjs` and
 
 ### Bot Commands
 
-Run `-help` in Discord for this same list, or `-help <command>` for a
-description of what a specific command does. This section is generated from
-the same command metadata — after adding or changing a command's `usage`
-export, run `npm run docs:generate` to update it (and the
+All of these are Discord slash commands: type `/` in any channel the bot is
+in and Discord will offer them, with each command's options as named,
+validated fields. Run `/help` for this same list, or `/help command:<name>`
+for a description of what a specific command does.
+
+`<angle brackets>` mark a required option and `[square brackets]` an
+optional one. This section is generated from the same option declarations
+the bot registers with Discord — after adding or changing a command's
+`options` export, run `npm run docs:generate` to update it (and the
 [full command reference](https://thirdratecyberpunk.github.io/SI_Card_Bot/)
 site under `docs/`) rather than editing it by hand.
 
 <!-- COMMANDS:START -->
 
-- `-adversary (adversary name)`
-- `-adversaryrules (leadingAdversary leadingAdversaryLevel) (supportingAdversary supportingAdversaryLevel) (nosetup)`
-- `-aspect (aspect name|emoji) [card number]`
-- `-aspects (spirit name)`
-- `-blight [card name]`
-- `-board [board letter/name]`
-- `-card [card name]`
-- `-choose [number]`
-- `-draw [card type] [amount (<=10)]`
-- `-dtnw [player count]`
-- `-event [event name]`
-- `-faq (search words)`
-- `-fear (fear name) (level)`
-- `-feardeck (leadingAdversary leadingAdversaryLevel) (supportingAdversary supportingAdversaryLevel)`
-- `-healing [keyword] (front/back)`
-- `-help [command name]`
-- `-incarna [keyword] (front/back)`
-- `-invaderdeck (leadingAdversary leadingAdversaryLevel) (supportingAdversary supportingAdversaryLevel)`
-- `-major [card name]`
-- `-minor [card name]`
-- `-power [card name]`
-- `-progression (spirit)`
-- `-random`
-  - `spirit (max complexity (low/moderate/high/vhc))`
-  - `adversary (min difficulty) (max difficulty)`
-  - `double (min difficulty) (max difficulty)`
+- `/adversary [adversary]`
+- `/adversaryrules <leading> <leading_level> [supporting] [supporting_level] [nosetup]`
+- `/aspect <aspect> [card]`
+- `/aspects [spirit]`
+- `/blight <card>`
+- `/board [board]`
+- `/card <card>`
+- `/choose <number>`
+- `/draw <type> [amount]`
+- `/dtnw [players]`
+- `/event <card> [spoiler]`
+- `/faq [search]`
+- `/fear [card] [level] [spoiler]`
+- `/feardeck <leading> <leading_level> [supporting] [supporting_level]`
+- `/healing <card> [side]`
+- `/help [command]`
+- `/incarna <spirit> [side]`
+- `/invaderdeck <leading> <leading_level> [supporting] [supporting_level]`
+- `/major <card>`
+- `/minor <card>`
+- `/power <card>`
+- `/progression <spirit>`
+- `/random`
+  - `spirit [max_complexity]`
+  - `adversary [min_difficulty] [max_difficulty]`
+  - `double [min_difficulty] [max_difficulty]`
   - `scenario`
-  - `board (all/thematic (defaults to regular))`
-- `-reactionrole`
-- `-scenario (front/back) [keywords]`
-- `-search [search words]`
-- `-spirit (front/back) [keywords]`
-- `-take [card type]`
-- `-unique [card name]`
-- `-uniques (spirit name)`
+  - `board [type]`
+- `/reactionrole`
+- `/scenario <scenario> [side]`
+- `/search <query> [spoiler]`
+- `/spirit [spirit] [side]`
+- `/take <type>`
+- `/unique <card>`
+- `/uniques <spirit>`
 <!-- COMMANDS:END -->
 
 The full reference site (one page per command, generated into `docs/`) is

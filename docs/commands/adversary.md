@@ -1,18 +1,24 @@
 ---
-title: "-adversary"
+title: "/adversary"
 layout: default
 ---
 
 [← Back to command list](../index.html)
 
-# -adversary
+# /adversary
 
 Get a single adversary panel
 
 ## Usage
 
 ```
--adversary (adversary name)
+/adversary [adversary]
 ```
 
-Looks up an adversary by exact title or alias and returns its rules panel image. With no match (or no argument), lists every adversary with its title and aliases instead.
+## Options
+
+| Option      | Type   | Required | Description                                                                                                                                                               |
+| ----------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `adversary` | string | no       | Adversary to show (leave blank to list every adversary). One of: `prussia`, `england`, `france`, `habsburg_livestock`, `russia`, `scotland`, `sweden`, `habsburg_mining`. |
+
+Returns an adversary's rules panel image. With no adversary given, lists every adversary with its title and aliases instead.

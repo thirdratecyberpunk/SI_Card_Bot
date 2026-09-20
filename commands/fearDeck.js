@@ -1,4 +1,8 @@
-const { parseSetupArgs, computeFearDeck } = require("./AdversaryNames.js");
+const {
+  parseSetupArgs,
+  computeFearDeck,
+  adversaryChoices,
+} = require("./AdversaryNames.js");
 
 /**
  * Command that returns the fear deck setup for a given
@@ -8,11 +12,39 @@ module.exports = {
   name: "feardeck",
   description:
     "Calculates the fear deck for a given adversary/double adversary set up.",
-  usage:
-    "(leadingAdversary leadingAdversaryLevel) (supportingAdversary supportingAdversaryLevel)",
   details:
     "Calculates the fear card counts (shown as an X/Y/Z split) for a single adversary, or for a leading+supporting double-adversary setup, at the given difficulty levels.",
   public: true,
+  options: [
+    {
+      name: "leading",
+      description: "Leading adversary",
+      type: "string",
+      required: true,
+      choices: adversaryChoices,
+    },
+    {
+      name: "leading_level",
+      description: "Leading adversary level (0-6)",
+      type: "integer",
+      required: true,
+      minValue: 0,
+      maxValue: 6,
+    },
+    {
+      name: "supporting",
+      description: "Supporting adversary, for a doubles setup",
+      type: "string",
+      choices: adversaryChoices,
+    },
+    {
+      name: "supporting_level",
+      description: "Supporting adversary level (0-6)",
+      type: "integer",
+      minValue: 0,
+      maxValue: 6,
+    },
+  ],
   async execute(msg, args) {
     try {
       // parseSetupArgs will validate args length, tokens, and levels

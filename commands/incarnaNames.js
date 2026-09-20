@@ -64,3 +64,7 @@ var lair = {
 var incarna = [voice, towering, breath, ember, locus, warrior, lair];
 
 exports.incarna = incarna;
+exports.incarnaChoices = incarna.map((card) => ({
+  name: card.name,
+  value: card.name,
+}));

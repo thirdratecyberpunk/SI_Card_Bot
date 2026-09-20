@@ -3,6 +3,7 @@
  */
 
 const heal = require("./healingNames.js");
+const { healingChoices } = heal;
 const s = require("./sendCardLink.js");
 
 function getSide(arg, f) {
@@ -18,10 +19,27 @@ function getPanel(hc, side) {
 module.exports = {
   name: "healing",
   description: "Get a healing card",
-  usage: "[keyword] (front/back)",
   details:
-    "Looks up a Wounded Waters Bleeding healing card (roiling, serene, renew or ruin) by title and returns its panel image - front by default, or back if 'front'/'back' is given.",
+    "Looks up a Wounded Waters Bleeding healing card (roiling, serene, renew or ruin) and returns its panel image - front by default, or the back via the `side` option.",
   public: true,
+  options: [
+    {
+      name: "card",
+      description: "Which healing card to show",
+      type: "string",
+      required: true,
+      choices: healingChoices,
+    },
+    {
+      name: "side",
+      description: "Which side of the card (defaults to front)",
+      type: "string",
+      choices: [
+        { name: "Front", value: "front" },
+        { name: "Back", value: "back" },
+      ],
+    },
+  ],
   async execute(msg, args) {
     var panel = "Choose a healing card (roiling, serene, renew or ruin).";
     var found = false;

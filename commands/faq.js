@@ -3,10 +3,17 @@ const to = require("await-to-js").default;
 module.exports = {
   name: "faq",
   description: "faq's website",
-  usage: "(search words)",
   details:
     "Builds a link into the community FAQ (hosted on Querki) - the FAQ home page with no arguments, or a pre-filled search for the given words.",
   public: true,
+  options: [
+    {
+      name: "search",
+      description:
+        "Words to search the FAQ for (blank links the FAQ home page)",
+      type: "string",
+    },
+  ],
   async execute(msg, args) {
     if (!args[0]) {
       msg.channel.send(
@@ -31,7 +38,7 @@ module.exports = {
 
 function cleanInput(args) {
   var card_name = args.toString().toLowerCase();
-  return card_name.replace("-", "").replace("\'", "").replace(",", "_");
+  return card_name.replace(/[-\']/g, "").replace(/,/g, "_");
 }
 
 async function UrlExists(url) {

@@ -4,9 +4,16 @@ const ImageNames = require("./ImageNames.js");
 module.exports = {
   name: "unique",
   description: "Unique card search",
-  usage: "[card name]",
-  details: "Same lookup as -power, restricted to spirits' Unique Power cards.",
+  details: "Same lookup as /power, restricted to spirits' Unique Power cards.",
   public: true,
+  options: [
+    {
+      name: "card",
+      description: "Unique Power card name",
+      type: "string",
+      required: true,
+    },
+  ],
 
   async execute(msg, args) {
     await s.sendCardLink(

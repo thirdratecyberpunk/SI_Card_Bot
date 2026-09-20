@@ -1,9 +1,11 @@
 /**
- * Smoke/regression tests for every commands/*.js module, run the same way
- * index.ts dispatches them: command.execute(msg, args, Discord). Goal is to
- * catch anything the TS migration (index.js -> index.ts, createRequire-based
- * loading) could plausibly break: a command that throws on load, a command
- * whose output shape changed, or one that stops calling msg.channel.send.
+ * Smoke/regression tests for every commands/*.js module, exercised at the
+ * level they're written against: command.execute(msg, args, Discord). The
+ * slash command layer that builds `msg` and `args` from an interaction is
+ * covered separately (tests/slashCommands.test.js and
+ * tests/interactionMessage.test.js), so these stay focused on what each
+ * command does with its arguments - that it loads, that its output shape
+ * hasn't changed, and that it still replies at all.
  *
  * Expected values below were captured by actually running each command
  * against the real data files (spiritNames.js, AdversaryNames.js, etc.) as
@@ -110,7 +112,7 @@ describe("aspect", () => {
     const msg = createMockMessage();
     await aspect.execute(msg, []);
     expect(msg.channel.send).toHaveBeenCalledWith(
-      expect.stringContaining("Usage: aspect"),
+      expect.stringContaining("Usage: /aspect"),
     );
   });
 });
@@ -156,7 +158,7 @@ describe("board", () => {
     const msg = createMockMessage();
     await board.execute(msg, [""]);
     expect(msg.channel.send).toHaveBeenCalledWith(
-      expect.stringContaining("Type the board name"),
+      expect.stringContaining("Pick a board:"),
     );
   });
 });
@@ -332,13 +334,16 @@ describe("fear", () => {
     );
   });
 
-  it("asks for a card name when only a level is given", async () => {
-    const msg = createMockMessage();
-    await fear.execute(msg, ["3"]);
-    expect(msg.channel.send).toHaveBeenCalledWith(
-      "Give a fear card name too, e.g. `-fear isolation 2`.",
-    );
-  });
+  it.each([["3"], ["", "3"]])(
+    "asks for a card name when only a level is given (%#)",
+    async (...args) => {
+      const msg = createMockMessage();
+      await fear.execute(msg, args);
+      expect(msg.channel.send).toHaveBeenCalledWith(
+        "Give a fear card name too, e.g. `/fear card:isolation level:2`.",
+      );
+    },
+  );
 });
 
 describe("feardeck (fearDeck.js)", () => {
@@ -364,7 +369,7 @@ describe("help", () => {
     const msg = createMockMessage();
     await help.execute(msg, []);
     expect(msg.channel.send).toHaveBeenCalledWith(
-      expect.stringContaining("-search"),
+      expect.stringContaining("/search <query> [spoiler]"),
     );
   });
 
@@ -372,7 +377,7 @@ describe("help", () => {
     const msg = createMockMessage();
     await help.execute(msg, []);
     expect(msg.channel.send).toHaveBeenCalledWith(
-      expect.not.stringContaining("-template"),
+      expect.not.stringContaining("/template"),
     );
   });
 
@@ -380,7 +385,7 @@ describe("help", () => {
     const msg = createMockMessage();
     await help.execute(msg, ["board"]);
     expect(msg.channel.send).toHaveBeenCalledWith(
-      expect.stringContaining("-board [board letter/name]"),
+      expect.stringContaining("/board [board]"),
     );
     expect(msg.channel.send).toHaveBeenCalledWith(
       expect.stringContaining("Returns the map image for a board"),

@@ -4,14 +4,32 @@
 const getCardName = require("./sendCardLink.js").getCardName;
 const to = require("await-to-js").default;
 const scenario = require("./scenarioNames.js").scenario;
+const scenarioChoices = require("./scenarioNames.js").scenarioChoices;
 
 module.exports = {
   name: "scenario",
   description: "Gets the front or back panel for a given scenario",
-  usage: "(front/back) [keywords]",
   details:
-    "Looks up a scenario by name and returns its panel image - the back by default, or the front if 'front' is given as the first argument. With no arguments, lists the names of every scenario.",
+    "Returns a scenario's panel image - the back (its rules side) by default, or the front via the `side` option.",
   public: true, //has to be true to show as a command
+  options: [
+    {
+      name: "scenario",
+      description: "Which scenario to show",
+      type: "string",
+      required: true,
+      choices: scenarioChoices,
+    },
+    {
+      name: "side",
+      description: "Which side of the panel (defaults to back)",
+      type: "string",
+      choices: [
+        { name: "Front", value: "front" },
+        { name: "Back", value: "back" },
+      ],
+    },
+  ],
   async execute(msg, args) {
     var panel = "";
     var names = [];
@@ -27,16 +45,16 @@ module.exports = {
       return;
     }
 
-    // if the first argument is not front or back, send the back by default
-    // otherwise, remove the first element of the arguments and set that to be the returned side
-    if (args[0] == "back" || args[0] == "front") {
-      side = args.shift();
-    } else {
-      side = "back";
-    }
+    // pull the side out of wherever it sits in the args (it's a named
+    // option now, so it's no longer guaranteed to come first); default to
+    // the back, which is the side with the scenario's rules on it
+    const sideIndex = args.findIndex((a) => a == "back" || a == "front");
+    side = sideIndex >= 0 ? args.splice(sideIndex, 1)[0] : "back";
 
-    // then finds the scenario panel with the closest name to the given arguments
-    panel = getCardName(args, names);
+    // an exact name comes straight from the command's own choice list;
+    // anything else falls back to the closest match
+    const remaining = args.join(" ").trim();
+    panel = names.includes(remaining) ? remaining : getCardName(args, names);
 
     scenario.forEach(function (s) {
       if (s.name == panel) {

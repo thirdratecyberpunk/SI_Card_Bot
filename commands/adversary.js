@@ -1,12 +1,19 @@
-const { ad } = require("./AdversaryNames.js");
+const { ad, adversaryChoices } = require("./AdversaryNames.js");
 
 module.exports = {
   name: "adversary",
   description: "Get a single adversary panel",
-  usage: "(adversary name)",
   details:
-    "Looks up an adversary by exact title or alias and returns its rules panel image. With no match (or no argument), lists every adversary with its title and aliases instead.",
+    "Returns an adversary's rules panel image. With no adversary given, lists every adversary with its title and aliases instead.",
   public: true,
+  options: [
+    {
+      name: "adversary",
+      description: "Adversary to show (leave blank to list every adversary)",
+      type: "string",
+      choices: adversaryChoices,
+    },
+  ],
   async execute(msg, args) {
     var panel = "";
     var found = false;

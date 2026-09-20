@@ -3,16 +3,32 @@ const { spirits } = require("./spiritNames.js");
 const levenshtein = require("js-levenshtein");
 const globals = require("../globals.cjs");
 const { PaginatedMessage } = require("@sapphire/discord.js-utilities");
+const { paginationTarget } = require("../utils/interactionMessage.cjs");
 
 const SPIRITS_PER_PAGE = 12;
 
 module.exports = {
   name: "spirit",
   description: "Spirit Search",
-  usage: "(front/back) [keywords]",
   details:
-    "Looks up a spirit by name or alias and returns its panel image (front by default, or back with the 'back' flag). With no arguments, sends a paginated alphabetical list of every spirit and its emote.",
+    "Looks up a spirit by name or alias and returns its panel image (front by default, or the back via the `side` option). With no spirit given, sends a paginated alphabetical list of every spirit and its emote.",
   public: true,
+  options: [
+    {
+      name: "spirit",
+      description: "Spirit name or alias (blank lists every spirit)",
+      type: "string",
+    },
+    {
+      name: "side",
+      description: "Which side of the panel (defaults to front)",
+      type: "string",
+      choices: [
+        { name: "Front", value: "front" },
+        { name: "Back", value: "back" },
+      ],
+    },
+  ],
   async execute(msg, args) {
     try {
       if (args.length < 1) {
@@ -66,7 +82,7 @@ function sendSpiritList(msg) {
     );
   }
 
-  return paginated.run(msg);
+  return paginated.run(paginationTarget(msg));
 }
 
 /**
