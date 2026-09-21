@@ -42,6 +42,72 @@ function createMockMessage({ channelId = "test-channel-id" } = {}) {
 }
 
 /**
+ * Stand-in for a ChatInputCommandInteraction.
+ *
+ * `deferred`/`replied` are maintained the way discord.js maintains them -
+ * deferReply() defers, reply()/editReply() mark it replied - because
+ * utils/interactionMessage.cjs reads exactly those flags to decide whether
+ * a send is the reply, an edit of a deferred reply, or a follow-up.
+ */
+function createMockInteraction({
+  commandName = "test",
+  subcommand = null,
+  options = {},
+  channelId = "test-channel-id",
+} = {}) {
+  const read = (name) => (name in options ? options[name] : null);
+
+  const interaction = {
+    commandName,
+    channelId,
+    user: { id: "test-user-id", username: "tester", bot: false },
+    member: null,
+    guild: {
+      emojis: {
+        cache: {
+          find: jest.fn(() => ({ id: "fake-emoji-id", name: "Fast" })),
+        },
+      },
+    },
+    client: {},
+    deferred: false,
+    replied: false,
+    // every payload handed to reply/editReply/followUp, in order
+    __sent: [],
+    isChatInputCommand: () => true,
+    options: {
+      getSubcommand: jest.fn(() => {
+        if (!subcommand) throw new Error("No subcommand on this interaction");
+        return subcommand;
+      }),
+      getString: jest.fn(read),
+      getInteger: jest.fn(read),
+      getBoolean: jest.fn(read),
+    },
+    deferReply: jest.fn(async () => {
+      interaction.deferred = true;
+    }),
+    reply: jest.fn(async (payload) => {
+      interaction.__sent.push(payload);
+      interaction.replied = true;
+      return createSentMessageStub();
+    }),
+    editReply: jest.fn(async (payload) => {
+      interaction.__sent.push(payload);
+      interaction.replied = true;
+      return createSentMessageStub();
+    }),
+    followUp: jest.fn(async (payload) => {
+      interaction.__sent.push(payload);
+      return createSentMessageStub();
+    }),
+    fetchReply: jest.fn(async () => createSentMessageStub()),
+  };
+
+  return interaction;
+}
+
+/**
  * Stubs @sapphire/discord.js-utilities' PaginatedMessage so commands that
  * build a paginated embed list (spirit.js, aspects.js with no args) can run
  * without a real discord.js Message/InteractionCollector. Call this from a
@@ -75,4 +141,8 @@ function paginatedMessageMock() {
   };
 }
 
-module.exports = { createMockMessage, paginatedMessageMock };
+module.exports = {
+  createMockMessage,
+  createMockInteraction,
+  paginatedMessageMock,
+};

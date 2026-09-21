@@ -1,18 +1,24 @@
 ---
-title: "-major"
+title: "/major"
 layout: default
 ---
 
 [← Back to command list](../index.html)
 
-# -major
+# /major
 
 Major card search
 
 ## Usage
 
 ```
--major [card name]
+/major <card>
 ```
 
-Same lookup as -power, restricted to Major Power cards.
+## Options
+
+| Option | Type   | Required | Description            |
+| ------ | ------ | -------- | ---------------------- |
+| `card` | string | yes      | Major Power card name. |
+
+Same lookup as /power, restricted to Major Power cards.

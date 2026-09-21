@@ -11,17 +11,26 @@ var sHelp =
 module.exports = {
   name: "search",
   description: "search the SICK library",
-  usage: "[search words]",
   details:
-    "Builds a link to search sick.oberien.de's card catalog for the given words (spaces become %20 in the URL). Run `-search help` to see the supported query syntax - quoted phrases, and filters like `elements:`, `range:`, `cost:` and `target:`. Wrap the whole message in spoiler bars (e.g. `||-search Vital Strength of the Earth||`) to have the bot send the search link as a spoiler.",
+    "Builds a link to search sick.oberien.de's card catalog for the given words (spaces become %20 in the URL). Run `/search query:help` to see the supported query syntax - quoted phrases, and filters like `elements:`, `range:`, `cost:` and `target:`. Set the `spoiler` option to have the bot send the result as a blurred, click-to-reveal spoiler.",
   public: true,
+  spoilerable: true,
+  options: [
+    {
+      name: "query",
+      description: "Search terms; run with 'help' for the query syntax",
+      type: "string",
+      required: true,
+    },
+  ],
   async execute(msg, args) {
     if (args[0] == "help") {
       return await msg.channel.send(sHelp);
     }
 
+    const query = args.join(" ").trim();
     var site_name =
-      "https://sick.oberien.de/?query=" + args.toString().replace(/,/g, "%20");
+      "https://sick.oberien.de/?query=" + query.replace(/\s+/g, "%20");
     //var url = await UrlExists(site_name);
     //console.log(url);
     //if (url){

@@ -1,18 +1,24 @@
 ---
-title: "-board"
+title: "/board"
 layout: default
 ---
 
 [← Back to command list](../index.html)
 
-# -board
+# /board
 
 Displays Boards
 
 ## Usage
 
 ```
--board [board letter/name]
+/board [board]
 ```
 
-Returns the map image for a board - core boards a-h, or a directional/thematic board (NE, NW, East, West, SE, SW). Run with no argument, or 'help', to see the full list of valid inputs.
+## Options
+
+| Option  | Type   | Required | Description                                                                                                                                 |
+| ------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `board` | string | no       | Which board to show (blank lists the valid inputs). One of: `a`, `b`, `c`, `d`, `e`, `f`, `g`, `h`, `ne`, `nw`, `east`, `west`, `se`, `sw`. |
+
+Returns the map image for a board - core boards a-h, or a directional/thematic board (NE, NW, East, West, SE, SW). Run it without picking a board to see the full list.

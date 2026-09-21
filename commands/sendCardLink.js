@@ -77,17 +77,20 @@ async function sendCardLink(
     }
     return await msg.channel.send(basePath + cardName + ".webp");
   } else {
-    return await msg.channel.send("Incorrect name, try using -search");
+    return await msg.channel.send("Incorrect name, try using /search");
   }
 }
 
+/**
+ * Normalises a search term into the underscored form the card name lists
+ * use (e.g. "Fields Choked with Growth" -> "fields_choked_with_growth").
+ * Every separator is replaced, not just the first: a slash command hands
+ * the whole name over as a single string, so a name with more than one
+ * space has to survive this to ever match exactly.
+ */
 function cleanInput(args) {
   var card_name = args.toString().toLowerCase();
-  return card_name
-    .replace("-", "")
-    .replace("\'", "")
-    .replace(",", "_")
-    .replace(" ", "_");
+  return card_name.replace(/[-\']/g, "").replace(/[,\s]+/g, "_");
 }
 
 module.exports = {

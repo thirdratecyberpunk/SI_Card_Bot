@@ -36,3 +36,7 @@ const ruin = {
 
 const healing = [roiling, serene, renew, ruin];
 exports.healing = healing;
+exports.healingChoices = healing.map((card) => ({
+  name: card.name,
+  value: card.title,
+}));

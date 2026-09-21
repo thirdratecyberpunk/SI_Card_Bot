@@ -10,7 +10,8 @@
     "dev": "tsx watch index.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "docs:generate": "node scripts/generateDocs.cjs && prettier --write README.md docs/"
+    "docs:generate": "node scripts/generateDocs.cjs && prettier --write README.md docs/",
+    "commands:deploy": "node scripts/deployCommands.cjs"
   },
   "engines": {
     "npm": "10.x",

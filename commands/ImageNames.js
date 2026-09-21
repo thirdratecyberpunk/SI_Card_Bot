@@ -565,7 +565,7 @@ var blightedIsland = [
 var stillHealthyIsland = [
   "invaders_find_the_land_to_their_liking",
   "strong_earth_shatters_slowly",
-  "the_border_of_live_and_death",
+  "the_border_of_life_and_death",
   "thriving_crops",
 ];
 

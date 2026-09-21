@@ -5,6 +5,7 @@
 
 const {
   ad,
+  adversaryChoices,
   parseSetupArgs,
   computeInvaderDeck,
   computeFearDeck,
@@ -29,11 +30,45 @@ function excludeSetupRules(rules) {
 module.exports = {
   name: "adversaryrules",
   description: "Get adversary information specific to a given setup.",
-  usage:
-    "(leadingAdversary leadingAdversaryLevel) (supportingAdversary supportingAdversaryLevel) (nosetup)",
   details:
-    "Computes and renders a full summary card (as a PNG image) for one or two adversaries at given levels - combined difficulty, invader deck, fear deck, escalations, loss conditions, adversary-specific rules, and any doubles-specific notes. Add 'nosetup' anywhere in the arguments to hide Setup-phase rules from the card.",
+    "Computes and renders a full summary card (as a PNG image) for one or two adversaries at given levels - combined difficulty, invader deck, fear deck, escalations, loss conditions, adversary-specific rules, and any doubles-specific notes. Set the `nosetup` option to hide Setup-phase rules from the card.",
   public: true,
+  options: [
+    {
+      name: "leading",
+      description: "Leading adversary",
+      type: "string",
+      required: true,
+      choices: adversaryChoices,
+    },
+    {
+      name: "leading_level",
+      description: "Leading adversary level (0-6)",
+      type: "integer",
+      required: true,
+      minValue: 0,
+      maxValue: 6,
+    },
+    {
+      name: "supporting",
+      description: "Supporting adversary, for a doubles setup",
+      type: "string",
+      choices: adversaryChoices,
+    },
+    {
+      name: "supporting_level",
+      description: "Supporting adversary level (0-6)",
+      type: "integer",
+      minValue: 0,
+      maxValue: 6,
+    },
+    {
+      name: "nosetup",
+      description: "Hide Setup-phase rules from the generated card",
+      type: "boolean",
+      flag: "nosetup",
+    },
+  ],
 
   async execute(msg, args) {
     // Normalize args

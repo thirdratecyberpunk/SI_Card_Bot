@@ -37,20 +37,6 @@ function spoilerCardAttachmentPayload(url) {
 }
 
 /**
- * Checks whether a raw message's content is wrapped end-to-end in Discord's
- * spoiler markdown (`||like this||`) - e.g. `||-event promising||` - and
- * returns the content with that wrapper stripped, so prefix/command
- * parsing downstream never has to know spoilers exist.
- */
-function extractSpoilerContent(rawContent) {
-  const trimmed = (rawContent || "").trim();
-  if (trimmed.length < 4 || !SPOILER_WRAP.test(trimmed)) {
-    return { isSpoiler: false, content: rawContent };
-  }
-  return { isSpoiler: true, content: trimmed.slice(2, -2).trim() };
-}
-
-/**
  * Wraps a string in spoiler markdown, unless it's empty or already
  * spoilered (avoids `||||text||||` if a command's own output happens to
  * already contain a spoiler tag).
@@ -164,53 +150,40 @@ function spoilerWrappedMessage(msg) {
 }
 
 // Commands that support spoiler-wrapping their result. Everything else
-// ignores `||...||` wrapping entirely (the wrapped message won't start
-// with the command prefix, so the bot just won't recognise it as a
-// command) - card lookups and search results are the things worth hiding,
-// not e.g. -help or -random.
+// ignores the spoiler toggle entirely - card lookups and search results
+// are the things worth hiding, not e.g. /help or /random. A command in
+// this set declares `spoilerable: true`, which is what puts the `spoiler`
+// option on its slash command (see utils/slashCommands.cjs).
 const SPOILERABLE_COMMANDS = new Set(["search", "event", "fear"]);
 
 /**
- * Reads the command name a (already-unwrapped) message content would
- * dispatch to, without actually dispatching it.
+ * Discord bot middleware: if a slash command supports spoilering (see
+ * SPOILERABLE_COMMANDS) and the user ticked its `spoiler` option, hands
+ * back a version of `message` whose `channel.send` spoiler-tags whatever
+ * the command sends back. For every other command, and for a spoilerable
+ * one run without the toggle, it hands back `message` untouched - so
+ * /random, /help and friends behave exactly as if this middleware didn't
+ * exist.
+ *
+ * This is the slash equivalent of the old prefix-era trick of typing
+ * `||-event promising||`: the wrapping of the command's *output* is
+ * unchanged, only the way the user asks for it has moved from spoiler
+ * bars around the message to a checkbox on the command.
  */
-function peekCommandName(content, prefix) {
-  if (!content.startsWith(prefix)) return null;
-  const withoutPrefix = content.slice(prefix.length).trimStart();
-  const end = withoutPrefix.search(/\s/);
-  const command = end === -1 ? withoutPrefix : withoutPrefix.slice(0, end);
-  return command ? command.toLowerCase() : null;
-}
+function applySpoilerMiddleware(interaction, message) {
+  const command = interaction?.commandName;
+  const requested =
+    SPOILERABLE_COMMANDS.has(command) &&
+    interaction.options?.getBoolean?.("spoiler") === true;
 
-/**
- * Discord bot middleware: if `msg`'s content was sent wrapped in spoiler
- * markdown (e.g. a user typing `||-event promising||` or `||-search Vital
- * Strength of the Earth||`) AND it dispatches to one of
- * SPOILERABLE_COMMANDS, strips the wrapper and hands back a version of the
- * message whose `channel.send` spoiler-tags whatever the matched command
- * sends back. For every other command (spoilered or not) it hands back
- * `msg` untouched, so `-random`/`-help`/etc. behave exactly as if this
- * middleware didn't exist. Callers should parse commands/args from the
- * returned `content` and pass the returned `message` to
- * `command.execute(...)` instead of the original `msg`.
- */
-function applySpoilerMiddleware(msg, prefix) {
-  const { isSpoiler, content } = extractSpoilerContent(msg.content);
-  const command = isSpoiler ? peekCommandName(content, prefix) : null;
-
-  if (!isSpoiler || !SPOILERABLE_COMMANDS.has(command)) {
-    return { content: msg.content, isSpoiler: false, message: msg };
+  if (!requested) {
+    return { isSpoiler: false, message };
   }
 
-  return {
-    content,
-    isSpoiler: true,
-    message: spoilerWrappedMessage(msg),
-  };
+  return { isSpoiler: true, message: spoilerWrappedMessage(message) };
 }
 
 module.exports = {
-  extractSpoilerContent,
   wrapTextInSpoiler,
   wrapEmbedInSpoiler,
   wrapPayloadInSpoiler,
@@ -219,5 +192,6 @@ module.exports = {
   applySpoilerMiddleware,
   isSickCardLink,
   spoilerCardAttachmentPayload,
+  isEmbedLike,
   SPOILERABLE_COMMANDS,
 };

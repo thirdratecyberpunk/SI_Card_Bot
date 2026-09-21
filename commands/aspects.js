@@ -4,14 +4,21 @@
 const { spirits } = require("./spiritNames.js");
 const spiritCommand = require("./spirit.js"); // to reuse searchForSpirit
 const { PaginatedMessage } = require("@sapphire/discord.js-utilities");
+const { paginationTarget } = require("../utils/interactionMessage.cjs");
 
 module.exports = {
   name: "aspects",
   description: "Lists all aspects or lists aspects for a given spirit.",
-  usage: "(spirit name)",
   details:
     "Lists the Aspects available for a given spirit, with each one's emote. With no arguments, sends a paginated list of every spirit's aspects.",
   public: true,
+  options: [
+    {
+      name: "spirit",
+      description: "Spirit whose aspects to list (blank lists every spirit's)",
+      type: "string",
+    },
+  ],
   async execute(msg, args) {
     try {
       if (!args || args.length === 0) {
@@ -28,7 +35,7 @@ module.exports = {
           );
         }
 
-        return paginated.run(msg);
+        return paginated.run(paginationTarget(msg));
       }
 
       const input = args.join(" ").trim();

@@ -4,10 +4,18 @@ const ImageNames = require("./ImageNames.js");
 module.exports = {
   name: "event",
   description: "Event Search",
-  usage: "[event name]",
   details:
-    "Looks up an Event card by name and returns its SICK card image link. Some events share an alias; if a name is ambiguous the bot asks you to be more specific instead of guessing. Wrap the whole message in spoiler bars (e.g. `||-event promising||`) to have the bot send the card as a blurred, click-to-reveal spoiler image.",
+    "Looks up an Event card by name and returns its SICK card image link. Some events share an alias; if a name is ambiguous the bot asks you to be more specific instead of guessing. Set the `spoiler` option to have the bot send the result as a blurred, click-to-reveal spoiler.",
   public: true,
+  spoilerable: true,
+  options: [
+    {
+      name: "card",
+      description: "Event card name",
+      type: "string",
+      required: true,
+    },
+  ],
   async execute(msg, args) {
     await s.sendCardLink(
       msg,

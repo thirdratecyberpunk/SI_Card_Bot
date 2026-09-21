@@ -1,18 +1,24 @@
 ---
-title: "-minor"
+title: "/minor"
 layout: default
 ---
 
 [← Back to command list](../index.html)
 
-# -minor
+# /minor
 
 Minor card search
 
 ## Usage
 
 ```
--minor [card name]
+/minor <card>
 ```
 
-Same lookup as -power, restricted to Minor Power cards.
+## Options
+
+| Option | Type   | Required | Description            |
+| ------ | ------ | -------- | ---------------------- |
+| `card` | string | yes      | Minor Power card name. |
+
+Same lookup as /power, restricted to Minor Power cards.

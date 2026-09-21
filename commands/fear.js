@@ -1,4 +1,5 @@
 const { PaginatedMessage } = require("@sapphire/discord.js-utilities");
+const { paginationTarget } = require("../utils/interactionMessage.cjs");
 const s = require("./sendCardLink");
 const ImageNames = require("./ImageNames.js");
 const { fearCardText } = require("./fearCardText.js");
@@ -8,10 +9,27 @@ const FEAR_CARDS_PER_PAGE = 12;
 module.exports = {
   name: "fear",
   description: "Fear card search",
-  usage: "(fear name) (level)",
   details:
-    "Looks up a Fear card by name and returns its SICK card image link. With no arguments, sends a paginated alphabetical list of every Fear card's title. Give a level (1, 2 or 3) after the name (e.g. `-fear isolation 2`) to get that level's text instead, as a message rather than the card image - SICK's own page never exposes this text, it only ever renders the image. Wrap the whole message in spoiler bars (e.g. `||-fear isolation||`) to have the bot send the card as a blurred, click-to-reveal spoiler image.",
+    "Looks up a Fear card by name and returns its SICK card image link. With no card given, sends a paginated alphabetical list of every Fear card's title. Set the `level` option (1, 2 or 3) to get that level's text instead, as a message rather than the card image - SICK's own page never exposes this text, it only ever renders the image. Set the `spoiler` option to have the bot send the result as a blurred, click-to-reveal spoiler.",
   public: true,
+  spoilerable: true,
+  options: [
+    {
+      name: "card",
+      description: "Fear card name (blank lists every fear card)",
+      type: "string",
+    },
+    {
+      name: "level",
+      description: "Send this terror level's text instead of the card image",
+      type: "integer",
+      choices: [
+        { name: "Level 1", value: 1 },
+        { name: "Level 2", value: 2 },
+        { name: "Level 3", value: 3 },
+      ],
+    },
+  ],
 
   async execute(msg, args) {
     if (args.length === 0) {
@@ -34,7 +52,7 @@ module.exports = {
 
 /**
  * Sends a paginated list of every Fear card's title, alphabetically - same
- * style as -spirit's list with no args.
+ * style as /spirit's list with no args.
  */
 function sendFearCardList(msg) {
   const sorted = [...fearCardText].sort((a, b) => a.name.localeCompare(b.name));
@@ -49,7 +67,7 @@ function sendFearCardList(msg) {
     );
   }
 
-  return paginated.run(msg);
+  return paginated.run(paginationTarget(msg));
 }
 
 /**
@@ -70,16 +88,17 @@ function parseLevel(arg) {
  * matches image links.
  */
 function sendFearCardText(msg, nameArgs, level) {
-  if (nameArgs.length === 0) {
+  const name = nameArgs.filter((arg) => String(arg).trim().length > 0);
+  if (name.length === 0) {
     return msg.channel.send(
-      "Give a fear card name too, e.g. `-fear isolation 2`.",
+      "Give a fear card name too, e.g. `/fear card:isolation level:2`.",
     );
   }
 
-  const slug = s.getCardName(nameArgs, ImageNames.fear);
+  const slug = s.getCardName(name, ImageNames.fear);
   const card = fearCardText.find((fear) => fear.slug === slug);
   if (!card) {
-    return msg.channel.send("Incorrect name, try using -search");
+    return msg.channel.send("Incorrect name, try using /search");
   }
 
   return msg.channel.send(

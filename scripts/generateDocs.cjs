@@ -2,14 +2,17 @@
 /**
  * Regenerates the "Bot Commands" section of README.md and the docs/
  * GitHub Pages site (docs/index.md + docs/commands/<name>.md) from each
- * command module's own `usage`/`description`/`details` exports, via the
- * shared loader in commandLoader.js. This is a manual step, not wired into
+ * command module's own `description`/`details`/`options` exports, via the
+ * shared loader in commandLoader.js. The syntax lines come from the same
+ * option declarations that get registered with Discord (formatUsage), so
+ * the docs describe the command Discord actually offers. This is a manual step, not wired into
  * CI - run `npm run docs:generate` after adding or changing a command and
  * commit the result.
  */
 const fs = require("fs");
 const path = require("path");
 const { loadCommands } = require("../commandLoader.cjs");
+const { formatUsage, declaredOptions } = require("../utils/slashCommands.cjs");
 
 const ROOT = path.join(__dirname, "..");
 const README_PATH = path.join(ROOT, "README.md");
@@ -27,16 +30,22 @@ function publicCommands() {
 }
 
 function usageLines(command) {
-  return (command.usage || "").split("\n").filter((line) => line.length > 0);
+  return formatUsage(command)
+    .split("\n")
+    .filter((line) => line.length > 0);
 }
 
 function readmeBulletFor(command) {
   const lines = usageLines(command);
   if (lines.length <= 1) {
-    return `- \`-${command.name}${lines[0] ? " " + lines[0] : ""}\``;
+    return `- \`${lines[0]}\``;
   }
-  const sub = lines.map((line) => `  - \`${line}\``).join("\n");
-  return `- \`-${command.name}\`\n${sub}`;
+  // Subcommand-based commands (/random) get one bullet per subcommand,
+  // with the shared `/name` left on the parent bullet.
+  const sub = lines
+    .map((line) => `  - \`${line.slice(`/${command.name} `.length)}\``)
+    .join("\n");
+  return `- \`/${command.name}\`\n${sub}`;
 }
 
 function updateReadme(commands) {
@@ -61,20 +70,56 @@ function updateReadme(commands) {
 }
 
 function commandUsageBlock(command) {
-  const lines = usageLines(command);
-  if (lines.length === 0) return `-${command.name}`;
-  return lines.map((line) => `-${command.name} ${line}`.trim()).join("\n");
+  return formatUsage(command);
+}
+
+/**
+ * The command's options as a table, so the reference page says what each
+ * one accepts (including the fixed choice lists Discord offers) rather
+ * than just naming it in the usage line.
+ */
+function optionsTable(command) {
+  const rows = [];
+
+  const describe = (option, prefix = "") => {
+    const choices = option.choices
+      ? `. One of: ${option.choices.map((choice) => `\`${choice.value}\``).join(", ")}`
+      : "";
+    const description = option.description.replace(/\.\s*$/, "");
+    rows.push(
+      `| \`${prefix}${option.name}\` | ${option.type} | ${option.required ? "yes" : "no"} | ${description}${choices}. |`,
+    );
+  };
+
+  if (command.subcommands) {
+    for (const sub of command.subcommands) {
+      for (const option of sub.options || []) describe(option, `${sub.name} `);
+    }
+  } else {
+    for (const option of declaredOptions(command)) describe(option);
+  }
+
+  if (rows.length === 0) return "";
+  return [
+    "",
+    "## Options",
+    "",
+    "| Option | Type | Required | Description |",
+    "| --- | --- | --- | --- |",
+    ...rows,
+    "",
+  ].join("\n");
 }
 
 function commandPageMarkdown(command) {
   return `---
-title: "-${command.name}"
+title: "/${command.name}"
 layout: default
 ---
 
 [← Back to command list](../index.html)
 
-# -${command.name}
+# /${command.name}
 
 ${command.description || ""}
 
@@ -83,7 +128,7 @@ ${command.description || ""}
 \`\`\`
 ${commandUsageBlock(command)}
 \`\`\`
-
+${optionsTable(command)}
 ${command.details || "_No detailed description yet._"}
 `;
 }
@@ -92,7 +137,7 @@ function indexMarkdown(commands) {
   const items = commands
     .map(
       (command) =>
-        `- [-${command.name}](commands/${command.name}.html)${command.description ? ` - ${command.description}` : ""}`,
+        `- [/${command.name}](commands/${command.name}.html)${command.description ? ` - ${command.description}` : ""}`,
     )
     .join("\n");
   return `---

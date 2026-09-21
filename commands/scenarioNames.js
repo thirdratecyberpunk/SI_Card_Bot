@@ -160,3 +160,10 @@ exports.scenario = [
   SoC,
   LSoC,
 ];
+
+// Choice list for the /scenario slash command; scenario names are short and
+// few enough to offer as a picker rather than a free-text search.
+exports.scenarioChoices = exports.scenario.map((s) => ({
+  name: s.name,
+  value: s.name,
+}));

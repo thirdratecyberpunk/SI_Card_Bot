@@ -7,8 +7,8 @@ import {
   Client,
   Collection,
   GatewayIntentBits,
-  Partials,
   ActivityType,
+  MessageFlags,
 } from "discord.js";
 import * as Discord from "discord.js";
 import express from "express";
@@ -18,18 +18,15 @@ dotenv.config();
 // TODO-ts-migration remove this once everything uses `import`
 const require = createRequire(import.meta.url);
 
+// Slash commands arrive as interactions over the gateway, so none of the
+// message-reading intents are needed any more - including MessageContent,
+// which is privileged and had to be granted in the developer portal.
+// Guilds alone covers the guild/channel/emoji caches the changelog
+// broadcast and /reactionrole read.
 const bot = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.DirectMessages,
-  ],
-  partials: [Partials.Channel, Partials.Message],
+  intents: [GatewayIntentBits.Guilds],
 });
 
-const PREFIX = "-";
 let ready = false; // readiness flag
 
 // --- health server ---
@@ -96,12 +93,12 @@ app.listen(HEALTH_PORT, () => {
 
 type CommandModule = {
   name: string;
+  public?: boolean;
+  // Command modules are written against a message-shaped object and a
+  // positional args array; utils/interactionMessage.cjs and
+  // utils/slashCommands.cjs build both from the incoming interaction.
   // TODO-ts-migration modules shouldn't need discord, they can just import it..
-  execute: (
-    msg: Discord.Message,
-    args: string[],
-    discord: typeof Discord,
-  ) => any;
+  execute: (msg: any, args: string[], discord: typeof Discord) => any;
 };
 
 const { loadCommands } = require("./commandLoader.cjs");
@@ -110,6 +107,9 @@ const {
   broadcastToGuilds,
 } = require("./utils/broadcast.cjs");
 const { applySpoilerMiddleware } = require("./utils/spoiler.cjs");
+const { argsFromInteraction } = require("./utils/slashCommands.cjs");
+const { createInteractionMessage } = require("./utils/interactionMessage.cjs");
+const { registerSlashCommands } = require("./scripts/deployCommands.cjs");
 
 const commands: Collection<string, CommandModule> = new Collection(
   loadCommands().commands,
@@ -117,40 +117,88 @@ const commands: Collection<string, CommandModule> = new Collection(
 
 bot.once("ready", async () => {
   console.log("This bot is online");
+
+  // Publish this build's slash commands so a deploy that adds a command or
+  // changes its options takes effect without a separate manual step. A
+  // guild registration (DISCORD_GUILD_ID) appears immediately, which is
+  // what you want while developing; global ones can take up to an hour.
+  try {
+    const registered = await registerSlashCommands(bot);
+    console.log(`Registered ${registered.length} slash command(s)`);
+  } catch (error) {
+    // A registration failure shouldn't take the bot down - whatever was
+    // registered last time is still there and still dispatchable.
+    console.error("Failed to register slash commands:", error);
+  }
+
   ready = true;
 
   // Set bot's presence
   bot.user?.setPresence({
-    activities: [{ name: `for -help`, type: ActivityType.Watching }],
+    activities: [{ name: `for /help`, type: ActivityType.Watching }],
     status: "online",
   });
-
-  console.log(commands.get("spirit")?.name);
 });
 
-bot.on("messageCreate", async (msg) => {
-  // If the whole message is wrapped in spoiler markdown and it dispatches
-  // to -search, -event, or -fear (see SPOILERABLE_COMMANDS), unwrap it for
-  // command parsing and hand off a message whose channel.send
-  // spoiler-tags whatever the command sends back. Any other command
-  // passes through untouched, spoiler wrapper or not.
-  const { content, message } = applySpoilerMiddleware(msg, PREFIX);
+bot.on("interactionCreate", async (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
 
-  if (!content.startsWith(PREFIX)) return;
-  let args = content.slice(PREFIX.length).trim().split(" ");
-  let command = args.shift()?.toLowerCase();
-  console.log(command);
-
-  if (!command) return;
-
-  if (!commands.has(command)) return console.log("command not in list");
+  const command = commands.get(interaction.commandName);
+  if (!command) {
+    console.log(`command not in list: ${interaction.commandName}`);
+    return;
+  }
 
   try {
-    await commands.get(command)?.execute(message, args, Discord);
+    // Reserve the reply up front: Discord drops an interaction that isn't
+    // acknowledged within three seconds, and some commands (notably
+    // /adversaryrules, which renders a PNG) take longer than that.
+    await interaction.deferReply();
+
+    const args = argsFromInteraction(interaction, command);
+
+    // If this command supports spoilering (see SPOILERABLE_COMMANDS) and
+    // the user ticked its `spoiler` option, hand off a message whose
+    // channel.send spoiler-tags whatever the command sends back. Every
+    // other command gets the plain adapter, spoiler option or not.
+    const { message } = applySpoilerMiddleware(
+      interaction,
+      createInteractionMessage(interaction),
+    );
+
+    await command.execute(message, args, Discord);
+    // Some commands fire their sends without awaiting them, so wait for the
+    // adapter's queue to drain before deciding whether anything was sent.
+    await message.flush();
+
+    // A command that deliberately says nothing (e.g. /reactionrole outside
+    // its configured channel) would otherwise leave the interaction stuck
+    // showing "thinking" forever.
+    if (interaction.deferred && !interaction.replied) {
+      await interaction.editReply("Nothing to send.");
+    }
   } catch (error) {
     console.error(error);
+    await respondWithError(interaction);
   }
 });
+
+async function respondWithError(
+  interaction: Discord.ChatInputCommandInteraction,
+) {
+  const content = "Something went wrong running that command.";
+  try {
+    if (interaction.replied) {
+      await interaction.followUp({ content, flags: MessageFlags.Ephemeral });
+    } else if (interaction.deferred) {
+      await interaction.editReply(content);
+    } else {
+      await interaction.reply({ content, flags: MessageFlags.Ephemeral });
+    }
+  } catch (replyError) {
+    console.error("Failed to report command error:", replyError);
+  }
+}
 
 // use DISCORD_TOKEN from env
 if (!process.env.DISCORD_TOKEN) {

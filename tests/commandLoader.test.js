@@ -1,6 +1,7 @@
-// index.ts, help.js, and the docs generator all use this same loader to
-// enumerate commands, so this test exercises the real implementation
-// (../commandLoader.js) rather than a hand-maintained copy of it.
+// index.ts, help.js, the slash command registration and the docs generator
+// all use this same loader to enumerate commands, so this test exercises the
+// real implementation (../commandLoader.cjs) rather than a hand-maintained
+// copy of it.
 const { loadCommands } = require("../commandLoader.cjs");
 
 describe("command loader (used by index.ts, help.js, and the docs generator)", () => {
@@ -21,7 +22,7 @@ describe("command loader (used by index.ts, help.js, and the docs generator)", (
     }
   });
 
-  it("registers every command documented in -help", () => {
+  it("registers every command documented in /help", () => {
     const documented = [
       "search",
       "draw",
@@ -56,6 +57,27 @@ describe("command loader (used by index.ts, help.js, and the docs generator)", (
     ];
     for (const name of documented) {
       expect(commands.has(name)).toBe(true);
+    }
+  });
+
+  it("gives every public command something to register as a slash command", () => {
+    // A module with neither is still dispatchable, but would register as a
+    // bare /name with no way to pass it anything - almost always a missed
+    // `options` export rather than a deliberate choice.
+    for (const [name, command] of commands) {
+      if (command.public === false) continue;
+      const declares =
+        Array.isArray(command.options) || Array.isArray(command.subcommands);
+      expect([name, declares]).toEqual([name, true]);
+    }
+  });
+
+  it("no longer carries the prefix-era `usage` strings", () => {
+    // Usage is derived from `options` now (utils/slashCommands.cjs's
+    // formatUsage), so a leftover `usage` export would be silently ignored
+    // documentation.
+    for (const [name, command] of commands) {
+      expect([name, command.usage]).toEqual([name, undefined]);
     }
   });
 

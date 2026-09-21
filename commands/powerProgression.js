@@ -6,10 +6,17 @@ const spirit = require("./spirit.js");
 module.exports = {
   name: "progression",
   description: "Gets the power progression for a spirit",
-  usage: "(spirit)",
   details:
     "Looks up a spirit by name and returns its power progression image, if one exists for that spirit.",
   public: true,
+  options: [
+    {
+      name: "spirit",
+      description: "Spirit whose power progression to show",
+      type: "string",
+      required: true,
+    },
+  ],
 
   async execute(msg, args) {
     try {

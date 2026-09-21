@@ -1,14 +1,32 @@
 // endpoint to retrieve an incarna
 const inc = require("./incarnaNames.js");
+const { incarnaChoices } = inc;
 const getcardname = require("./sendCardLink.js").getCardName;
 
 module.exports = {
   name: "incarna",
   description: "Get an incarna",
-  usage: "[keyword] (front/back)",
   details:
-    "Looks up a spirit's Incarna card by spirit name or alias and returns its panel image - the unempowered (front) side by default, or the back side if 'back' is given as the second argument.",
+    "Returns a spirit's Incarna card panel image - the unempowered (front) side by default, or the empowered side via the `side` option.",
   public: true,
+  options: [
+    {
+      name: "spirit",
+      description: "Spirit whose incarna to show",
+      type: "string",
+      required: true,
+      choices: incarnaChoices,
+    },
+    {
+      name: "side",
+      description: "Unempowered (front) or empowered (back); defaults to front",
+      type: "string",
+      choices: [
+        { name: "Front", value: "front" },
+        { name: "Back", value: "back" },
+      ],
+    },
+  ],
   async execute(msg, args) {
     var panel = "Please name a spirit with an incarna.";
     var found = false;

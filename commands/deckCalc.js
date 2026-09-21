@@ -1,4 +1,8 @@
-const { parseSetupArgs, computeInvaderDeck } = require("./AdversaryNames.js");
+const {
+  parseSetupArgs,
+  computeInvaderDeck,
+  adversaryChoices,
+} = require("./AdversaryNames.js");
 
 /**
  * Command that returns the invader deck setup for a given
@@ -8,11 +12,39 @@ module.exports = {
   name: "invaderdeck",
   description:
     "Calculates the invader deck for a given adversary/double adversary set up.",
-  usage:
-    "(leadingAdversary leadingAdversaryLevel) (supportingAdversary supportingAdversaryLevel)",
   details:
     "Calculates and lists the invader deck contents for a single adversary, or for a leading+supporting double-adversary setup, at the given difficulty levels.",
   public: true,
+  options: [
+    {
+      name: "leading",
+      description: "Leading adversary",
+      type: "string",
+      required: true,
+      choices: adversaryChoices,
+    },
+    {
+      name: "leading_level",
+      description: "Leading adversary level (0-6)",
+      type: "integer",
+      required: true,
+      minValue: 0,
+      maxValue: 6,
+    },
+    {
+      name: "supporting",
+      description: "Supporting adversary, for a doubles setup",
+      type: "string",
+      choices: adversaryChoices,
+    },
+    {
+      name: "supporting_level",
+      description: "Supporting adversary level (0-6)",
+      type: "integer",
+      minValue: 0,
+      maxValue: 6,
+    },
+  ],
 
   async execute(msg, args) {
     try {

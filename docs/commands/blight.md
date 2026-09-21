@@ -1,18 +1,24 @@
 ---
-title: "-blight"
+title: "/blight"
 layout: default
 ---
 
 [← Back to command list](../index.html)
 
-# -blight
+# /blight
 
 Blight card search
 
 ## Usage
 
 ```
--blight [card name]
+/blight <card>
 ```
+
+## Options
+
+| Option | Type   | Required | Description       |
+| ------ | ------ | -------- | ----------------- |
+| `card` | string | yes      | Blight card name. |
 
 Looks up a Blight card by name and returns its SICK card image link.

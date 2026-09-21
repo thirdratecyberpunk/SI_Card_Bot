@@ -1,18 +1,24 @@
 ---
-title: "-progression"
+title: "/progression"
 layout: default
 ---
 
 [← Back to command list](../index.html)
 
-# -progression
+# /progression
 
 Gets the power progression for a spirit
 
 ## Usage
 
 ```
--progression (spirit)
+/progression <spirit>
 ```
+
+## Options
+
+| Option   | Type   | Required | Description                             |
+| -------- | ------ | -------- | --------------------------------------- |
+| `spirit` | string | yes      | Spirit whose power progression to show. |
 
 Looks up a spirit by name and returns its power progression image, if one exists for that spirit.
