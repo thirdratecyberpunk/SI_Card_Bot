@@ -127,7 +127,7 @@ function searchForSpirit(searchStringParam) {
     }
 
     // try to filter the ones found to spirits which have that EXACT word (ignoring apostrophised plurals for Stone's), not just a substring match
-    uniqueSpirits = foundSpirits.filter(
+    const uniqueSpirits = foundSpirits.filter(
       (foundSpirit) =>
         sanitiseSpiritName(foundSpirit.name).indexOf(searchString) > -1,
     );
