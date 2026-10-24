@@ -620,7 +620,7 @@
     "set": "je",
     "complexity": 2,
     "emote": "<:SpiritStoneUnyieldingDefiance:852365962187374632>",
-    "aliases": [],
+    "aliases": ["stone"],
     "uniques": [
       "jagged_shards_push_from_the_earth",
       "stubborn_solidity",
