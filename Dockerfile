@@ -1,5 +1,5 @@
 # Stage 1: install dependencies
-FROM node:20-slim AS deps
+FROM node:22.23.4-slim AS deps
 WORKDIR /usr/src/app
 
 # Install system dependencies required by node-canvas
@@ -23,7 +23,7 @@ RUN npm ci
 # Stage 3: development image, used by docker-compose.dev.yml (target: dev).
 # Keeps the build toolchain so canvas can rebuild if node_modules ever needs
 # it, and runs via tsx watch mode for auto-reload on file changes.
-FROM node:20-slim AS dev
+FROM node:22.23.4-slim AS dev
 WORKDIR /usr/src/app
 
 RUN apt-get update && apt-get install -y \
@@ -42,7 +42,7 @@ COPY . .
 CMD ["npx", "tsx", "watch", "index.ts"]
 
 # Stage 4: production app image
-FROM node:20-slim AS app
+FROM node:22.23.4-slim AS app
 WORKDIR /usr/src/app
 
 # Install runtime libs for canvas
