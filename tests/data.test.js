@@ -37,6 +37,23 @@ describe.each(collections)("data/%s", (_file, schemaFile, records) => {
   it("has no duplicate ids", () => {
     expect(duplicatesIn(records.map((record) => record.id))).toEqual([]);
   });
+
+  it("links to no images on imgur or the Spirit Island wiki", () => {
+    const urls = JSON.stringify(records).match(/https?:\/\/[^"]+/g) ?? [];
+    expect(
+      urls.filter((url) => /imgur\.com|spiritislandwiki\.com/.test(url)),
+    ).toEqual([]);
+  });
+});
+
+describe("data/boards.json", () => {
+  it("hosts every board image on callofthedahanways.com", () => {
+    for (const board of require("../data/boards.json")) {
+      expect(board.image).toBe(
+        `https://cdn.callofthedahanways.com/boards/${board.id}.png`,
+      );
+    }
+  });
 });
 
 describe("data/spirits.json", () => {

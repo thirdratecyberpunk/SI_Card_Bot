@@ -153,7 +153,7 @@ describe("board", () => {
     const msg = createMockMessage();
     await board.execute(msg, ["a"]);
     expect(msg.channel.send).toHaveBeenCalledWith(
-      "https://spiritislandwiki.com/images/e/e2/Piece_core_board_a.png",
+      "https://cdn.callofthedahanways.com/boards/a.png",
     );
   });
 
@@ -161,7 +161,7 @@ describe("board", () => {
     const msg = createMockMessage();
     await board.execute(msg, ["nw"]);
     expect(msg.channel.send).toHaveBeenCalledWith(
-      "https://spiritislandwiki.com/images/8/8c/Piece_core_board_north_west.png",
+      "https://cdn.callofthedahanways.com/boards/north-west.png",
     );
   });
 
