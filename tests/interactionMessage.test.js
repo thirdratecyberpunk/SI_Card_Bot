@@ -262,9 +262,13 @@ describe("flush", () => {
       createInteractionMessage(interaction),
     );
 
-    message.channel.send("https://imgur.com/nlpGjjH");
+    message.channel.send(
+      "https://cdn.callofthedahanways.com/scenarios/blitz/panel-1.jpg",
+    );
     await message.flush();
 
-    expect(interaction.__sent).toEqual(["||https://imgur.com/nlpGjjH||"]);
+    expect(interaction.__sent).toEqual([
+      "||https://cdn.callofthedahanways.com/scenarios/blitz/panel-1.jpg||",
+    ]);
   });
 });

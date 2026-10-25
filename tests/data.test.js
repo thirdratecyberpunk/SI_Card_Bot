@@ -37,6 +37,23 @@ describe.each(collections)("data/%s", (_file, schemaFile, records) => {
   it("has no duplicate ids", () => {
     expect(duplicatesIn(records.map((record) => record.id))).toEqual([]);
   });
+
+  it("links to no images on imgur or the Spirit Island wiki", () => {
+    const urls = JSON.stringify(records).match(/https?:\/\/[^"]+/g) ?? [];
+    expect(
+      urls.filter((url) => /imgur\.com|spiritislandwiki\.com/.test(url)),
+    ).toEqual([]);
+  });
+});
+
+describe("data/boards.json", () => {
+  it("hosts every board image on callofthedahanways.com", () => {
+    for (const board of require("../data/boards.json")) {
+      expect(board.image).toBe(
+        `https://cdn.callofthedahanways.com/boards/${board.id}.png`,
+      );
+    }
+  });
 });
 
 describe("data/spirits.json", () => {
@@ -65,6 +82,16 @@ describe("data/spirits.json", () => {
     expect(listed.filter((slug) => !uniqueCards.includes(slug))).toEqual([]);
     expect(uniqueCards.filter((slug) => !listed.includes(slug))).toEqual([]);
     expect(duplicatesIn(listed)).toEqual([]);
+  });
+
+  it("hosts every incarna image on callofthedahanways.com", () => {
+    const panels = spirits
+      .flatMap((spirit) => [spirit, ...spirit.aspects])
+      .flatMap((holder) => holder.incarna?.panel ?? []);
+    expect(panels.length).toBeGreaterThan(0);
+    for (const url of panels) {
+      expect(url).toMatch(/^https:\/\/cdn\.callofthedahanways\.com\//);
+    }
   });
 });
 

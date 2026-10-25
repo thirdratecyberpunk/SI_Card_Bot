@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 /**
  * Extracts the images the data files link to from the print-and-play PDFs
- * in Spirit_Island_low_res/, ready to upload to R2.
+ * in Spirit_Island_low_res/, ready to upload to R2. Incarna and boards
+ * aren't in the PDFs, so they're taken from the wiki images saved in
+ * incarna/ and boards/ instead: PNGs are copied as-is and SVGs rendered to
+ * PNG.
  *
  * Every page of the official PDFs is a single embedded 300dpi JPEG, so
  * pdfimages (poppler-utils) pulls it out without re-encoding. Aspect cards
@@ -17,16 +20,23 @@
  *   spirits/<id>/power-progression.jpg
  *   spirits/<id>/aspects/<aspect>/panel-<n>.jpg
  *   spirits/<id>/healing/<card>/panel-<n>.jpg
+ *   spirits/<id>/incarna/panel-<n>.png            unempowered, empowered
+ *   spirits/<id>/aspects/<aspect>/incarna/panel-<n>.png
  *   spirits/<id>/extra-panels/<board>/panel-1.jpg
  *   cards/<id>.jpg                                cards SICK doesn't have
  *   scenarios/<id>/panel-<n>.jpg
  *   adversaries/<id>/panel.jpg
+ *   boards/<id>.png
  *
  * Keys follow entity ids, which never change, so a published url stays
  * valid. assets/manifest.json records, for each key, the PDF page it came
  * from and the data field it replaces.
  *
  * Usage: node scripts/extractAssets.cjs [--source <dir>] [--out <dir>]
+ *                                       [--only <text>]
+ *   --only  extract just the images whose key contains <text> (e.g.
+ *           "/incarna/" or "boards/"), merging them into the existing
+ *           manifest.
  */
 const fs = require("fs");
 const os = require("os");
@@ -176,6 +186,56 @@ const ADVERSARIES = {
   "habsburg-mining-expedition": "nature-incarnate/adversary-hme.pdf",
 };
 
+// spirit or aspect id -> images in incarna/: the unempowered side, then
+// the empowered side if it has one.
+const INCARNA = {
+  "breath-of-darkness-down-your-spine": [
+    "Breath_of_Darkness_Down_Your_Spine_Incarna.png",
+    "Breath_of_Darkness_Down_Your_Spine_Empowered_Incarna.png",
+  ],
+  "covets-gleaming-shards-of-earth": [
+    "Covets_Gleaming_Shards_of_Earth_Incarna.svg",
+  ],
+  "ember-eyed-behemoth": [
+    "Ember-Eyed_Behemoth_Incarna.png",
+    "Ember-Eyed_Behemoth_Empowered_Incarna.png",
+  ],
+  "towering-roots-of-the-jungle": [
+    "Towering_Roots_of_the_Jungle_Incarna.png",
+    "Towering_Roots_of_the_Jungle_Empowered_Incarna.png",
+  ],
+  "wandering-voice-keens-delirium": [
+    "Wandering_Voice_Keens_Delirium_Incarna.png",
+    "Wandering_Voice_Keens_Delirium_Empowered_Incarna.png",
+  ],
+  "lure-of-the-deep-wilderness/lair": [
+    "Lure_of_the_Deep_Wilderness_Incarna_(Lair).png",
+  ],
+  "serpent-slumbering-beneath-the-island/locus": [
+    "Serpent_Slumbering_Beneath_the_Island_Incarna_(Locus).png",
+    "Serpent_Slumbering_Beneath_the_Island_Empowered_Incarna_(Locus).png",
+  ],
+  "thunderspeaker/warrior": ["Thunderspeaker_Incarna_(Warrior).png"],
+};
+
+// board id -> image in boards/.
+const BOARDS = {
+  a: "Piece_core_board_a.png",
+  b: "Piece_core_board_b.png",
+  c: "Piece_core_board_c.png",
+  d: "Piece_core_board_d.png",
+  e: "Piece_je_board_e.png",
+  f: "Piece_je_board_f.png",
+  g: "Piece_horizons_board_g.png",
+  h: "Piece_horizons_board_h.png",
+  "north-east": "Piece_core_board_north_east.png",
+  "north-west": "Piece_core_board_north_west.png",
+  east: "Piece_core_board_east.png",
+  west: "Piece_core_board_west.png",
+  "south-east": "Piece_je_board_south_east.png",
+  "south-west": "Piece_je_board_south_west.png",
+};
+
 const APOCRYPHA = "branch-claw/apocrypha";
 
 // Apocrypha spirit id -> PDF whose pages 1 and 2 are the play and lore
@@ -221,7 +281,8 @@ const CARD_SHEETS = [
  * Every image to extract: its bucket key, source page, and the data field
  * whose url it replaces (`file`, entity `id`, `field` path within it).
  * Jobs with a `render` area ("page", or {x, y, w, h} in points) are
- * rendered rather than extracted.
+ * rendered rather than extracted, and jobs with an `image` (a path from the
+ * repo root) are copied from it.
  */
 function buildJobs() {
   const jobs = [];
@@ -293,6 +354,30 @@ function buildJobs() {
       ),
     );
   }
+  for (const [id, images] of Object.entries(INCARNA)) {
+    const [spirit, aspect] = id.split("/");
+    const dir = aspect
+      ? `spirits/${spirit}/aspects/${aspect}/incarna`
+      : `spirits/${spirit}/incarna`;
+    images.forEach((image, i) =>
+      jobs.push({
+        key: `${dir}/panel-${i + 1}.png`,
+        image: `incarna/${image}`,
+        file: "spirits",
+        id,
+        field: `incarna.panel[${i}]`,
+      }),
+    );
+  }
+  for (const [id, image] of Object.entries(BOARDS)) {
+    jobs.push({
+      key: `boards/${id}.png`,
+      image: `boards/${image}`,
+      file: "boards",
+      id,
+      field: "image",
+    });
+  }
   for (const { pdf, origin, cards } of CARD_SHEETS) {
     cards.forEach((id, i) =>
       add(`cards/${id}.jpg`, pdf, 1, "cards", id, "image", {
@@ -363,6 +448,19 @@ function renderPage(pdf, page, area, dest) {
   }
 }
 
+/** Copies a PNG to `dest`, or renders an SVG to one at its own size. */
+async function copyImage(src, dest) {
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
+  if (path.extname(src) !== ".svg") {
+    fs.copyFileSync(src, dest);
+    return;
+  }
+  const img = await loadImage(fs.readFileSync(src));
+  const canvas = createCanvas(img.width, img.height);
+  canvas.getContext("2d").drawImage(img, 0, 0);
+  fs.writeFileSync(dest, canvas.toBuffer("image/png"));
+}
+
 /**
  * Resolves a field path like "panel[1]", "powerProgression" or
  * "extraPanels[0].panel[0]" on the entity with `id` (top level or nested
@@ -404,26 +502,33 @@ function arg(name, fallback) {
 async function main() {
   const source = arg("--source", path.join(ROOT, "Spirit_Island_low_res"));
   const out = arg("--out", path.join(ROOT, "assets"));
+  const only = process.argv[process.argv.indexOf("--only") + 1];
+  const filter = process.argv.includes("--only") ? only : undefined;
   const data = Object.fromEntries(
-    ["spirits", "cards", "scenarios", "adversaries"].map((f) => [
+    ["spirits", "cards", "scenarios", "adversaries", "boards"].map((f) => [
       f,
       JSON.parse(fs.readFileSync(path.join(ROOT, "data", `${f}.json`))),
     ]),
   );
 
   const manifest = [];
-  for (const job of buildJobs()) {
+  const jobs = buildJobs().filter((job) => !filter || job.key.includes(filter));
+  for (const job of jobs) {
     const replaces = currentUrl(data, job.file, job.id, job.field);
     if (replaces === undefined) {
       throw new Error(`${job.file}: ${job.id} has no ${job.field}`);
     }
-    const pdf = path.join(source, job.pdf);
     const dest = path.join(out, job.key);
-    if (job.render) renderPage(pdf, job.page, job.render, dest);
-    else await extractPage(pdf, job.page, dest);
+    if (job.image) {
+      await copyImage(path.join(ROOT, job.image), dest);
+    } else {
+      const pdf = path.join(source, job.pdf);
+      if (job.render) renderPage(pdf, job.page, job.render, dest);
+      else await extractPage(pdf, job.page, dest);
+    }
     manifest.push({
       key: job.key,
-      source: `${job.pdf}#${Math.abs(job.page)}`,
+      source: job.image ?? `${job.pdf}#${Math.abs(job.page)}`,
       file: `data/${job.file}.json`,
       id: job.id,
       field: job.field,
@@ -431,10 +536,15 @@ async function main() {
     });
   }
 
-  fs.writeFileSync(
-    path.join(out, "manifest.json"),
-    JSON.stringify(manifest, null, 2) + "\n",
-  );
+  const manifestPath = path.join(out, "manifest.json");
+  if (filter && fs.existsSync(manifestPath)) {
+    const keys = new Set(manifest.map((entry) => entry.key));
+    const kept = JSON.parse(fs.readFileSync(manifestPath, "utf8")).filter(
+      (entry) => !keys.has(entry.key),
+    );
+    manifest.unshift(...kept);
+  }
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
   console.log(`Extracted ${manifest.length} images to ${out}`);
 }
 

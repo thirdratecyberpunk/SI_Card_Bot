@@ -153,7 +153,7 @@ describe("board", () => {
     const msg = createMockMessage();
     await board.execute(msg, ["a"]);
     expect(msg.channel.send).toHaveBeenCalledWith(
-      "https://spiritislandwiki.com/images/e/e2/Piece_core_board_a.png",
+      "https://cdn.callofthedahanways.com/boards/a.png",
     );
   });
 
@@ -161,7 +161,7 @@ describe("board", () => {
     const msg = createMockMessage();
     await board.execute(msg, ["nw"]);
     expect(msg.channel.send).toHaveBeenCalledWith(
-      "https://spiritislandwiki.com/images/8/8c/Piece_core_board_north_west.png",
+      "https://cdn.callofthedahanways.com/boards/north-west.png",
     );
   });
 
@@ -443,20 +443,32 @@ describe("incarna", () => {
     const msg = createMockMessage();
     await incarna.execute(msg, ["Towering"]);
     expect(msg.channel.send).toHaveBeenCalledWith(
-      "https://spiritislandwiki.com/images/f/f2/Towering_Roots_of_the_Jungle_Incarna.png",
+      "https://cdn.callofthedahanways.com/spirits/towering-roots-of-the-jungle/incarna/panel-1.png",
     );
   });
 
   it("returns an aspect's incarna", async () => {
     const msg = createMockMessage();
     await incarna.execute(msg, ["Locus", "back"]);
-    expect(msg.channel.send).toHaveBeenCalledWith("https://imgur.com/116luO1");
+    expect(msg.channel.send).toHaveBeenCalledWith(
+      "https://cdn.callofthedahanways.com/spirits/serpent-slumbering-beneath-the-island/aspects/locus/incarna/panel-2.png",
+    );
   });
 
   it("falls back to the front of a single-sided incarna", async () => {
     const msg = createMockMessage();
     await incarna.execute(msg, ["Warrior", "back"]);
-    expect(msg.channel.send).toHaveBeenCalledWith("https://imgur.com/oVtswAd");
+    expect(msg.channel.send).toHaveBeenCalledWith(
+      "https://cdn.callofthedahanways.com/spirits/thunderspeaker/aspects/warrior/incarna/panel-1.png",
+    );
+  });
+
+  it("returns a spirit's single-sided incarna", async () => {
+    const msg = createMockMessage();
+    await incarna.execute(msg, ["Covets"]);
+    expect(msg.channel.send).toHaveBeenCalledWith(
+      "https://cdn.callofthedahanways.com/spirits/covets-gleaming-shards-of-earth/incarna/panel-1.png",
+    );
   });
 });
 

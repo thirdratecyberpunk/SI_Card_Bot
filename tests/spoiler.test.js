@@ -62,7 +62,11 @@ describe("isSickCardLink", () => {
   });
 
   it("rejects links from other hosts", () => {
-    expect(isSickCardLink("https://imgur.com/nlpGjjH")).toBe(false);
+    expect(
+      isSickCardLink(
+        "https://cdn.callofthedahanways.com/scenarios/blitz/panel-1.jpg",
+      ),
+    ).toBe(false);
   });
 
   it("rejects plain text", () => {
@@ -92,8 +96,12 @@ describe("wrapPayloadInSpoiler", () => {
   });
 
   it("wraps a non-SICK plain string payload in spoiler markdown as before", () => {
-    expect(wrapPayloadInSpoiler("https://imgur.com/nlpGjjH")).toBe(
-      "||https://imgur.com/nlpGjjH||",
+    expect(
+      wrapPayloadInSpoiler(
+        "https://cdn.callofthedahanways.com/scenarios/blitz/panel-1.jpg",
+      ),
+    ).toBe(
+      "||https://cdn.callofthedahanways.com/scenarios/blitz/panel-1.jpg||",
     );
   });
 
@@ -127,9 +135,13 @@ describe("spoilerWrappedChannel", () => {
     const channel = { id: "c1", send: jest.fn().mockResolvedValue("sent") };
     const wrapped = spoilerWrappedChannel(channel);
 
-    await wrapped.send("https://imgur.com/nlpGjjH");
+    await wrapped.send(
+      "https://cdn.callofthedahanways.com/scenarios/blitz/panel-1.jpg",
+    );
 
-    expect(channel.send).toHaveBeenCalledWith("||https://imgur.com/nlpGjjH||");
+    expect(channel.send).toHaveBeenCalledWith(
+      "||https://cdn.callofthedahanways.com/scenarios/blitz/panel-1.jpg||",
+    );
   });
 
   it("turns a SICK card link sent through it into a blurred attachment", async () => {

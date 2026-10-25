@@ -34,6 +34,8 @@ const ASSETS = path.join(ROOT, "assets");
 // same key (errata, a better scan), so don't cache forever.
 const CACHE_CONTROL = "public, max-age=604800";
 
+const CONTENT_TYPES = { ".jpg": "image/jpeg", ".png": "image/png" };
+
 function env(name) {
   const value = process.env[name];
   if (!value) throw new Error(`${name} is not set; see .env.template`);
@@ -82,7 +84,7 @@ async function upload(manifest, dryRun) {
         Bucket: bucket,
         Key: key,
         Body: body,
-        ContentType: "image/jpeg",
+        ContentType: CONTENT_TYPES[path.extname(key)],
         CacheControl: CACHE_CONTROL,
       }),
     );

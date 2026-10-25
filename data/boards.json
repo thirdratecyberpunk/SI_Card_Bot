@@ -4,97 +4,97 @@
     "name": "A",
     "layout": "standard",
     "aliases": [],
-    "image": "https://spiritislandwiki.com/images/e/e2/Piece_core_board_a.png"
+    "image": "https://cdn.callofthedahanways.com/boards/a.png"
   },
   {
     "id": "b",
     "name": "B",
     "layout": "standard",
     "aliases": [],
-    "image": "https://spiritislandwiki.com/images/7/7a/Piece_core_board_b.png"
+    "image": "https://cdn.callofthedahanways.com/boards/b.png"
   },
   {
     "id": "c",
     "name": "C",
     "layout": "standard",
     "aliases": [],
-    "image": "https://spiritislandwiki.com/images/8/82/Piece_core_board_c.png"
+    "image": "https://cdn.callofthedahanways.com/boards/c.png"
   },
   {
     "id": "d",
     "name": "D",
     "layout": "standard",
     "aliases": [],
-    "image": "https://spiritislandwiki.com/images/3/3a/Piece_core_board_d.png"
+    "image": "https://cdn.callofthedahanways.com/boards/d.png"
   },
   {
     "id": "e",
     "name": "E",
     "layout": "standard",
     "aliases": [],
-    "image": "https://spiritislandwiki.com/images/e/e5/Piece_je_board_e.png"
+    "image": "https://cdn.callofthedahanways.com/boards/e.png"
   },
   {
     "id": "f",
     "name": "F",
     "layout": "standard",
     "aliases": [],
-    "image": "https://spiritislandwiki.com/images/0/0b/Piece_je_board_f.png"
+    "image": "https://cdn.callofthedahanways.com/boards/f.png"
   },
   {
     "id": "g",
     "name": "G",
     "layout": "standard",
     "aliases": [],
-    "image": "https://spiritislandwiki.com/images/d/d4/Piece_horizons_board_g.png"
+    "image": "https://cdn.callofthedahanways.com/boards/g.png"
   },
   {
     "id": "h",
     "name": "H",
     "layout": "standard",
     "aliases": [],
-    "image": "https://spiritislandwiki.com/images/4/4a/Piece_horizons_board_h.png"
+    "image": "https://cdn.callofthedahanways.com/boards/h.png"
   },
   {
     "id": "north-east",
     "name": "North East",
     "layout": "thematic",
     "aliases": ["ne", "northeast"],
-    "image": "https://spiritislandwiki.com/images/f/f9/Piece_core_board_north_east.png"
+    "image": "https://cdn.callofthedahanways.com/boards/north-east.png"
   },
   {
     "id": "north-west",
     "name": "North West",
     "layout": "thematic",
     "aliases": ["nw", "northwest"],
-    "image": "https://spiritislandwiki.com/images/8/8c/Piece_core_board_north_west.png"
+    "image": "https://cdn.callofthedahanways.com/boards/north-west.png"
   },
   {
     "id": "east",
     "name": "East",
     "layout": "thematic",
     "aliases": [],
-    "image": "https://spiritislandwiki.com/images/5/58/Piece_core_board_east.png"
+    "image": "https://cdn.callofthedahanways.com/boards/east.png"
   },
   {
     "id": "west",
     "name": "West",
     "layout": "thematic",
     "aliases": ["w"],
-    "image": "https://spiritislandwiki.com/images/2/26/Piece_core_board_west.png"
+    "image": "https://cdn.callofthedahanways.com/boards/west.png"
   },
   {
     "id": "south-east",
     "name": "South East",
     "layout": "thematic",
     "aliases": ["se", "southeast"],
-    "image": "https://spiritislandwiki.com/images/c/cc/Piece_je_board_south_east.png"
+    "image": "https://cdn.callofthedahanways.com/boards/south-east.png"
   },
   {
     "id": "south-west",
     "name": "South West",
     "layout": "thematic",
     "aliases": ["sw", "southwest"],
-    "image": "https://spiritislandwiki.com/images/6/64/Piece_je_board_south_west.png"
+    "image": "https://cdn.callofthedahanways.com/boards/south-west.png"
   }
 ]
