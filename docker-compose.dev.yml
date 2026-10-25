@@ -6,7 +6,7 @@ services:
       target: dev
     image: si-card-bot:local
     volumes:
-      - "./:/usr/src/app"
+      - "./:/usr/src/app:z"
       # Keep the container's own compiled node_modules (built for its OS/arch)
       # instead of letting the bind mount above shadow it with the host's,
       # which would break native deps like canvas.

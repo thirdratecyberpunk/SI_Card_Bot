@@ -115,8 +115,19 @@ function searchForSpirit(searchStringParam) {
   if (foundSpirits.length === 1) {
     return foundSpirits;
   } else if (foundSpirits.length > 1) {
+    // An exact alias is more specific than a spirit name that merely
+    // contains the search string (e.g. "stone" vs. "Rising Heat of Stone").
+    const exactAliasMatches = foundSpirits.filter((spirit) =>
+      (Array.isArray(spirit.aliases) ? spirit.aliases : []).some(
+        (alias) => String(alias || "").toLowerCase() === searchString,
+      ),
+    );
+    if (exactAliasMatches.length > 0) {
+      return exactAliasMatches;
+    }
+
     // try to filter the ones found to spirits which have that EXACT word (ignoring apostrophised plurals for Stone's), not just a substring match
-    uniqueSpirits = foundSpirits.filter(
+    const uniqueSpirits = foundSpirits.filter(
       (foundSpirit) =>
         sanitiseSpiritName(foundSpirit.name).indexOf(searchString) > -1,
     );
