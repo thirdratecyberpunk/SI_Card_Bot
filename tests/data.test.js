@@ -66,6 +66,16 @@ describe("data/spirits.json", () => {
     expect(uniqueCards.filter((slug) => !listed.includes(slug))).toEqual([]);
     expect(duplicatesIn(listed)).toEqual([]);
   });
+
+  it("hosts every incarna image on callofthedahanways.com", () => {
+    const panels = spirits
+      .flatMap((spirit) => [spirit, ...spirit.aspects])
+      .flatMap((holder) => holder.incarna?.panel ?? []);
+    expect(panels.length).toBeGreaterThan(0);
+    for (const url of panels) {
+      expect(url).toMatch(/^https:\/\/cdn\.callofthedahanways\.com\//);
+    }
+  });
 });
 
 describe("data/cards.json", () => {

@@ -297,7 +297,9 @@
         ],
         "incarna": {
           "aliases": [],
-          "panel": ["https://imgur.com/VMuYUo4"]
+          "panel": [
+            "https://cdn.callofthedahanways.com/spirits/lure-of-the-deep-wilderness/aspects/lair/incarna/panel-1.png"
+          ]
         }
       }
     ]
@@ -423,7 +425,10 @@
         ],
         "incarna": {
           "aliases": [],
-          "panel": ["https://imgur.com/NsTzupl", "https://imgur.com/116luO1"]
+          "panel": [
+            "https://cdn.callofthedahanways.com/spirits/serpent-slumbering-beneath-the-island/aspects/locus/incarna/panel-1.png",
+            "https://cdn.callofthedahanways.com/spirits/serpent-slumbering-beneath-the-island/aspects/locus/incarna/panel-2.png"
+          ]
         }
       }
     ]
@@ -669,7 +674,9 @@
         ],
         "incarna": {
           "aliases": ["🍆"],
-          "panel": ["https://imgur.com/oVtswAd"]
+          "panel": [
+            "https://cdn.callofthedahanways.com/spirits/thunderspeaker/aspects/warrior/incarna/panel-1.png"
+          ]
         }
       }
     ]
@@ -886,8 +893,8 @@
     "incarna": {
       "aliases": ["boddys", "spine", "nal"],
       "panel": [
-        "https://spiritislandwiki.com/images/b/b1/Breath_of_Darkness_Down_Your_Spine_Incarna.png",
-        "https://spiritislandwiki.com/images/2/26/Breath_of_Darkness_Down_Your_Spine_Empowered_Incarna.png"
+        "https://cdn.callofthedahanways.com/spirits/breath-of-darkness-down-your-spine/incarna/panel-1.png",
+        "https://cdn.callofthedahanways.com/spirits/breath-of-darkness-down-your-spine/incarna/panel-2.png"
       ]
     },
     "aspects": []
@@ -935,8 +942,8 @@
     "incarna": {
       "aliases": ["stomp", "eeb"],
       "panel": [
-        "https://spiritislandwiki.com/images/8/8d/Ember-Eyed_Behemoth_Incarna.png",
-        "https://spiritislandwiki.com/images/a/a7/Ember-Eyed_Behemoth_Empowered_Incarna.png"
+        "https://cdn.callofthedahanways.com/spirits/ember-eyed-behemoth/incarna/panel-1.png",
+        "https://cdn.callofthedahanways.com/spirits/ember-eyed-behemoth/incarna/panel-2.png"
       ]
     },
     "aspects": []
@@ -1002,8 +1009,8 @@
     "incarna": {
       "aliases": ["the tree stands tall"],
       "panel": [
-        "https://spiritislandwiki.com/images/f/f2/Towering_Roots_of_the_Jungle_Incarna.png",
-        "https://spiritislandwiki.com/images/3/34/Towering_Roots_of_the_Jungle_Empowered_Incarna.png"
+        "https://cdn.callofthedahanways.com/spirits/towering-roots-of-the-jungle/incarna/panel-1.png",
+        "https://cdn.callofthedahanways.com/spirits/towering-roots-of-the-jungle/incarna/panel-2.png"
       ]
     },
     "aspects": []
@@ -1029,8 +1036,8 @@
     "incarna": {
       "aliases": [],
       "panel": [
-        "https://spiritislandwiki.com/images/f/fa/Wandering_Voice_Keens_Delirium_Incarna.png",
-        "https://spiritislandwiki.com/images/c/cd/Wandering_Voice_Keens_Delirium_Empowered_Incarna.png"
+        "https://cdn.callofthedahanways.com/spirits/wandering-voice-keens-delirium/incarna/panel-1.png",
+        "https://cdn.callofthedahanways.com/spirits/wandering-voice-keens-delirium/incarna/panel-2.png"
       ]
     },
     "aspects": []
@@ -1125,6 +1132,12 @@
         ]
       }
     ],
+    "incarna": {
+      "aliases": ["dragon"],
+      "panel": [
+        "https://cdn.callofthedahanways.com/spirits/covets-gleaming-shards-of-earth/incarna/panel-1.png"
+      ]
+    },
     "aspects": []
   },
   {

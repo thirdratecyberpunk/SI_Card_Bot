@@ -1,6 +1,6 @@
 # SI_Card_Bot
 
-A bot to retrieve Spirit Island cards and panels from Spirit Island Card Katalog (https://sick.oberien.de/) and Imgur(for now) and other useful SI related utilities.
+A bot to retrieve Spirit Island cards and panels from Spirit Island Card Katalog (https://sick.oberien.de/) and callofthedahanways.com (https://cdn.callofthedahanways.com) and other useful SI related utilities.
 
 **Invite code**: https://discord.com/oauth2/authorize?client_id=1120665987331661904&permissions=292058114048&integration_type=0&scope=bot
 
